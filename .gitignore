@@ -1,0 +1,17 @@
+#########
+# FILES #
+#########
+
+[_.]INFO.*
+_[Ii]nfo.*
+[_.]NOTES.*
+_[Nn]otes.*
+[_.]TEMP.*
+_[Tt]emp.*
+[_.]TMP.*
+_[Tt]mp.*
+[_.]TODO.*
+_[Tt]odo.*
+
+README.md
+LICENSE
