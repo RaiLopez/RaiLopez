@@ -219,7 +219,7 @@ cat <<EOF > "$TEMP_TABLE"
 
 | Icon | &nbsp;&nbsp;Name&nbsp;&nbsp; | Description | <span title="Direct Download Links"> 📦 </span> |
 | :--: | -- | -- | :--: |
-| [<img src="${URL_RAW_CORE}/${CORE}@2x.png" width="48">](./${CORE}/ 'Go to \"$CORE\" (Core) repo...') | [***LS&nbsp;<sup>Core</sup>***](./${CORE}/ 'Go to \"$CORE\" (Core) repo...') | ***<sup>Essential shared/common resources, utils, and core modules required by [Lost Scripts™](https://lost-scripts.github.io/ "Go to Lost Scripts™ site...") project for Moho<sup><ins>Pro<ins></sup> Animation Software.</sup>*** | [ &nbsp;⏬&nbsp; ](${URL_BASE}/${CORE}/archive/refs/heads/main.zip 'Download: ${CORE}.zip') |
+| [<img src="${URL_RAW_CORE}/${CORE}@2x.png" width="48">](./${CORE}/ 'Go to \"$CORE\" (Core) repo...') | [***LS&nbsp;<sup>Core</sup>***](./${CORE}/ 'Go to \"$CORE\" (Core) repo...') | ***<sup>Essential shared/common resources, utils, and core modules required by [Lost Scripts™](https://lost-scripts.github.io/ "Go to Lost Scripts™ site...") project for MOHO<sup>Pro</sup> Animation Software.</sup>*** | [ &nbsp;⏬&nbsp; ](${URL_BASE}/${CORE}/archive/refs/heads/main.zip 'Download: ${CORE}.zip') |
 EOF
 
 # 4b. Append Collected Data (Dynamic rows)
