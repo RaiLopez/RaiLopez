@@ -55,6 +55,8 @@ done
 # 2. PROCESSING (Fixed new UUID based "Sacred Logic")
 echo -e "--- ✨ Distributing From Cleaned Mirror: $CORE_DEST"
 PACKS=$(find "$CORE_DEST" -type f -name "*.lua" -exec grep -l "${VARS[DEP]}" {} + | xargs -I {} basename {} .lua | sort -u) # Generate the "Sacred List" of pack IDs (we look for the Dependency Key in all .lua files)
+MONO_MSG=$(git log -1 --pretty=%B | tr -d '\r' | head -n 1)
+MONO_HASH=$(git rev-parse --short HEAD)
 
 for script_id in $PACKS; do
 	[[ "$script_id" == "$CORE" ]] && continue # Skip the core itself to avoid self-processing
@@ -160,6 +162,7 @@ for script_id in $PACKS; do
 			# B2. SYNC LOGIC (Only if global OK was given at the beginning)
 			if [ "$PUBLISH" = true ]; then
 				echo "    🌐 Syncing Git: $script_id"
+				COMMIT_MSG="$MONO_MSG [ref: $MONO_HASH]"
 				git add .
 				if ! git diff --cached --quiet || ! git rev-parse @{u} >/dev/null 2>&1; then
 					git diff --cached --quiet && MSG="Initial upload" || { MSG="Updating changes"; git commit -m "Auto-build: $(date +'%Y-%m-%d %H:%M')"; }; echo "    ⬆️ $MSG..."
