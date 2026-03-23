@@ -12,8 +12,6 @@
 The *lost & found* hub where those long-lost [**MOHO**<sup>®</sup>](https://moho.lostmarble.com/ "Go to Moho® Animation Software homepage...") scripts wait to be dropped right into your animation setup to take it to the next level.
 
 
-<br>
-
 ## 📦 Catalog
 
 Full catalog of Lost Scripts™. The rightmost direct download links provide you with the latest release, if any, or a *nightly build*. Visit their respective repos for more details... 
@@ -30,7 +28,6 @@ Full catalog of Lost Scripts™. The rightmost direct download links provide you
 <!-- CATALOG_END -->
 </div>
 
-<br>
 
 ## ⚙ Installation
 
@@ -46,13 +43,11 @@ And that's all! The script should appear in *Tools* palette and/or under *Script
 
 > ⚠ **WARNING:** Please, make sure you have uninstalled every *Lost Script* on your system before removing any shared resource or they may start throwing errors or stop working. For uninstalling a script, just remove any file and folder matching its name and restart Moho® or *Reload Tools And Brushes* if necessary.
 
-<br>
 
 ## 🤝 Collab & Support
 
 Suggestions and bugs can be reported in the [<i>Issues</i>](https://github.com/lost-scripts/ls/issues "Go to ''Issues'' section") section (preferably) or in the corresponding topic, if any, in [<i>Scripting</i>](https://www.lostmarble.com/forum/viewforum.php?f=12 "Go to Lost Marble Forum's ''Scripting'' section") section of the [<i>Lost Marble Forum</i>](https://www.lostmarble.com/forum "Go to the ''Lost Marble Forum''").
 
-<br>
 
 ## 🔗 Other...
 
