@@ -162,10 +162,12 @@ for script_id in $PACKS; do
 			# B2. SYNC LOGIC (Only if global OK was given at the beginning)
 			if [ "$PUBLISH" = true ]; then
 				echo "    🌐 Syncing Git: $script_id"
-				COMMIT_MSG="$MONO_MSG [ref: $MONO_HASH]"
 				git add .
 				if ! git diff --cached --quiet || ! git rev-parse @{u} >/dev/null 2>&1; then
-					git diff --cached --quiet && MSG="Initial upload" || { MSG="Updating changes"; git commit -m "Auto-build: $(date +'%Y-%m-%d %H:%M')"; }; echo "    ⬆️ $MSG..."
+					git diff --cached --quiet && MSG="Initial upload" || MSG="$MONO_MSG [ref:$MONO_HASH]"
+					git commit -m "$MSG" >/dev/null 2>&1 # Committing silently
+					echo -e "    ⬆️  ${T_G}Commit:${_T} $MSG"
+					
 					if git push -u origin main >/dev/null 2>&1; then
 						echo "    🚀 [Git] SUCCESS: Done!"
 					else
