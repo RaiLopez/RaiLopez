@@ -2,7 +2,7 @@
 set -euo pipefail; trap 'debugger $LINENO "$BASH_COMMAND"' ERR # Debug Mode (Comment/Uncomment as needed)
 
 # ⚙ CONFIGURATION
-declare -Ar INFO=( [NAME]="Lost Builder" [VERSION]="1.4.4" [CREATOR]="Rai López" [DESC]="Lost Project's Development Helper" )
+declare -Ar INFO=( [NAME]="Lost Builder" [VERSION]="1.5.0" [CREATOR]="Rai López" [DESC]="Lost Project's Development Helper" )
 declare -ar INCLUDE=( "Embed" "Menu" "Modules" "ScriptResources" "Smart" "Tool" "Utility" "docs" "README.md" "LICENSE" )
 declare -Ar VARS=( [DEP]="ScriptDep" [VER]="ScriptVersion" [BLD]="ScriptBuild" [DSC]="ScriptDesc" [TAR]="ScriptTarget" )
 declare -Ar VAREXS=( [S]='s/.*=[[:space:]]*["'\'']\([^"'\'']*\)["'\''].*/\1/p' [A]='s/[^=]*=[[:space:]]*//; s/[^"'\'']*["'\'']\([^"'\'']*\)["'\'']/\1 /g' )
@@ -14,7 +14,7 @@ declare -r  DISTDIR="_dist" # Specifying a directory implies creating ZIPs (assu
 declare -ar ZIPIGNORE=( "README.md" "LICENSE" "docs" "docs/*" "*/docs/*" "*.zip" )
 declare --  PUBLISH=false # Requires the script folder has a repo and 'origin' remote
 declare --  CATALOG_DATA=$(mktemp)
-declare -A  REPORT=( [LOC]=0 [PUB]=0 [ISS]=0 ) # TODO!
+declare -A  REPORT=( [LOC]=0 [PUB]=0 [TOT]=0 [ISS]=0 [DUR]=0)
 declare --  T_R='\e[1;31m'; T_G='\e[1;32m'; T_Y='\e[1;33m'; T_B='\e[1;34m'; T_D='\e[2m'; T_S='\e[1m' ; T_U='\e[4m'; T_C='\e['; _T='\e[0m' # Text: Red, Green, Yellow, Blue, Dim; Strong, UL; Custom; Reset (_T)
 
 # 🛠️ HELPER FUNCTIONS
@@ -65,13 +65,7 @@ MONO_MSG=$(git log -1 --pretty=%B | tr -d '\r' | head -n 1)
 MONO_HASH=$(git rev-parse --short HEAD)
 
 for script_id in $PACKS; do
-	#[[ "$script_id" == "$CORE" ]] && continue # Skip the core itself to avoid self-processing
-	
-	#echo -e "📦 Processing pack: ${T_U}$script_id${_T}"
-	#TARGET_DIR="../$script_id"
-	#mkdir -p "$TARGET_DIR"
-
-	# --- A. CONFIGURACIÓN DE RUTAS ---
+	# --- PATH CONFIGURATION & MOVEMENT
 	if [[ "$script_id" == "$CORE" ]]; then
 		TARGET_DIR="$CORE_DEST"
 		echo -e "📦 Finalizing Core: ${T_U}$script_id${_T}"
@@ -80,15 +74,13 @@ for script_id in $PACKS; do
 		echo -e "📦 Processing pack: ${T_U}$script_id${_T}"
 		mkdir -p "$TARGET_DIR"
 
-		# --- B. MOVIMIENTO (Solo para packs normales) ---
-		# --- 🔽 2.1. MOVE COMPONENT FILES: Find anything starting with the ID (scripts, icons, tool lists) excluding the ScriptResources folder to handle it separately
+		# --- 🔽 2.1 (B) MOVE NORMAL PACKS COMPONENT FILES: Find anything starting with the ID (scripts, icons...) excluding the ScriptResources folder to handle it separately
 		find "$CORE_DEST" -name "${script_id}*" -not -path "*/ScriptResources/*" -type f | while read -r file; do
 			rel_path=$(dirname "${file#$CORE_DEST/}")
 			mkdir -p "$TARGET_DIR/$rel_path"
 			mv "$file" "$TARGET_DIR/$rel_path/"
 		done
-
-		# --- ⏬ 2.2 MOVE RESOURCES
+		# --- ⏬ 2.2 (B) MOVE NORMAL PACKS RESOURCES
 		if [ -d "$CORE_DEST/ScriptResources/$script_id" ]; then
 			mkdir -p "$TARGET_DIR/ScriptResources"
 			rm -rf "$TARGET_DIR/ScriptResources/$script_id"
@@ -153,7 +145,7 @@ for script_id in $PACKS; do
 	if [ -d "$TARGET_DIR/.git" ]; then
 		cd "$TARGET_DIR" || exit
 
-		# 📶 A. REMOTE CHECK (Necessary to know if the script is "catalogeable")
+		# 📶 A. REMOTE CHECK (Essential to know if the script is "catalogable")
 		HAS_REMOTE=false
 		if git remote | grep -q "origin"; then
 			HAS_REMOTE=true
@@ -186,52 +178,45 @@ for script_id in $PACKS; do
 				echo "    🌐 Syncing Git: $script_id"
 				git add .
 				
-				# 1. Comprobamos si hay cambios en el stage (index)
-				HAS_CHANGES=false
-				! git diff --cached --quiet && HAS_CHANGES=true
+				# B2a. Check if there are changes in the stage (index)
+				HAS_CHANGES=false; ! git diff --cached --quiet && HAS_CHANGES=true
 
-				# 2. Comprobamos si el repo es nuevo (no tiene commit inicial en el remoto)
-				IS_NEW=false
-				! git rev-parse @{u} >/dev/null 2>&1 && IS_NEW=true
+				# B2b. Check if the repo is new (it doesn't have an initial commit on the remote)
+				IS_NEW=false; ! git rev-parse @{u} >/dev/null 2>&1 && IS_NEW=true
 
 				if [ "$HAS_CHANGES" = true ] || [ "$IS_NEW" = true ]; then
-					# Decidimos el mensaje: Si es nuevo y no hay cambios en stage, es "Initial upload"
-					# Si hay cambios, usamos el DNA-Sync del monorepo
-					if [ "$IS_NEW" = true ] && [ "$HAS_CHANGES" = false ]; then
+					if [ "$IS_NEW" = true ] && [ "$HAS_CHANGES" = false ]; then # Decide the message: "Initial upload" if new and without stage changes, or "DNA-Sync" from the monorepo if there are changes
 						MSG="Initial upload"
 					else
 						MSG="$MONO_MSG (@$MONO_HASH)"
 					fi
-
-					# Hacemos el commit SOLO si hay algo que commitear
-					if [ "$HAS_CHANGES" = true ]; then
+					if [ "$HAS_CHANGES" = true ]; then # Commit ONLY if there is something to
 						git commit -m "$MSG" >/dev/null 2>&1
 						echo -e "    ⬆️  [Git] COMMIT: $MSG"
 					fi
-
-					# Intentamos el push (tanto si hay commit nuevo como si es un repo nuevo vacío)
-					if git push -u origin main >/dev/null 2>&1; then
+					if git push -u origin main >/dev/null 2>&1; then # Attempt the push (whether there is new commit or is a new empty repo)
 						echo "    🚀 [Git] SUCCESS: Done!"
 					else
 						echo -e "    ❎ [Git] ${T_R}ERROR:${_T} Push failed!"
-						# Solo hacemos reset si llegamos a crear un commit local
-						[ "$HAS_CHANGES" = true ] && git reset --soft HEAD~1 >/dev/null 2>&1
+						[ "$HAS_CHANGES" = true ] && git reset --soft HEAD~1 >/dev/null 2>&1 # Only reset if we end up creating a local commit
 					fi
 				else
 					echo "    🧼 [Git] CLEAN: Up to date."
 				fi
 			fi
+			((++REPORT[PUB]))
 		fi
 		cd - > /dev/null
 	else
-		# Solo avisamos de que es local-only si el usuario pretendía publicar
-		if [ "$PUBLISH" = true ]; then
+		if [ "$PUBLISH" = true ]; then # Only log that it's local-only if the user intended to post
 			echo "    ℹ️  $script_id is local-only (No .git folder)."
 		fi
+		((++REPORT[LOC]))
 	fi
 
 	# --- 🎁 2.7. SCRIPT ZIP GENERATION (Optional & Local)
 	zipper "$script_id" "$TARGET_DIR"
+	((++REPORT[TOT]))
 done
 
 # 4. GENERATING CATALOG
@@ -279,7 +264,7 @@ if [ -s "$CATALOG_DATA" ]; then
 		echo "| [<img src='${ICON_URL}' width='48' onerror=\"this.src='${FALLBACK}'\">](${PACK_LNK} 'Go to \"$id\" repo...') | $DISPLAY_NAME | $DISPLAY_DESC | [ &nbsp;⏬&nbsp; ]($url 'Download: ${id}.zip') |" >> "$TEMP_TABLE"
 	done
 	
-	echo -e "\n<p align='right'><sub>🛈 <em>Generated by <strong>${INFO[NAME]}</strong><sup> v${INFO[VERSION]}</sup> @ <code>$(date +'%Y%m%d-%H%M')</code></em></sub></p>" >> "$TEMP_TABLE"
+	echo -e "\n<p align='right'><sub>🛈 <em>Generated by <strong>${INFO[NAME]}</strong><sup> v${INFO[VERSION]}</sup> @ <code>$(date +'%Y%m%d')</code></em></sub></p>" >> "$TEMP_TABLE"
 fi
 
 # 4c. Surgical Injection (Shielded Version)
@@ -298,7 +283,7 @@ fi
 rm -f "$TEMP_TABLE" "$CATALOG_DATA"
 
 # 5. RESTART?
-echo -ne "--- 🏁 DONE! \e[1;5mRestart?\e[0m ${T_D}('y' confirms; any other key exits)${_T}: "; read -n 1 action; #read -n 1 -p "--- 🏁 DONE! Restart? Press 'y' to confirm (or any key to exit): " action
+echo -ne "--- 🏁 DONE! 💾(${REPORT[LOC]}) 🌐(${REPORT[PUB]}) #(${REPORT[TOT]}) ❌(${REPORT[ISS]}) \e[1;5mRestart?\e[0m ${T_D}('y' confirms; any other key exits)${_T}: "; read -n 1 action; #read -n 1 -p "--- 🏁 DONE! Restart? Press 'y' to confirm (or any key to exit): " action
 if [ "$action" == "y" ] || [ "$action" == "Y" ]; then
 	echo -e "\n--- 🔁 Restarting... \n"; sleep 0.5; exec bash "$0"
 else
