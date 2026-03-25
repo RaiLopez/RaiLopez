@@ -2,8 +2,9 @@
 set -euo pipefail; trap 'debugger $LINENO "$BASH_COMMAND"' ERR # Debug Mode (Comment/Uncomment as needed)
 
 # ⚙ CONFIGURATION
-declare -Ar INFO=( [NAME]="Lost Builder" [VERSION]="1.5.0" [CREATOR]="Rai López" [DESC]="Lost Project's Development Helper" )
-declare -ar INCLUDE=( "Embed" "Menu" "Modules" "ScriptResources" "Smart" "Tool" "Utility" "docs" "README.md" "LICENSE" )
+declare -Ar INFO=( [NAME]="Lost Builder" [VERSION]="1.5.1" [CREATOR]="Rai López" [DESC]="Lost Project's Development Helper" )
+declare -ar INCLUDE=( "Embed" "Menu" "Modules" "ScriptResources" "Smart" "Tool" "Utility" "docs" "README.md" "LICENSE" ) # Make sure the element doesn't remain orphaned in the Core if you remove it from this list!
+declare -ar SYNC=( "Modules" "Tool" "Utility" "ScriptResources" "Menu" "Embed" "Smart" )
 declare -Ar VARS=( [DEP]="ScriptDep" [VER]="ScriptVersion" [BLD]="ScriptBuild" [DSC]="ScriptDesc" [TAR]="ScriptTarget" )
 declare -Ar VAREXS=( [S]='s/.*=[[:space:]]*["'\'']\([^"'\'']*\)["'\''].*/\1/p' [A]='s/[^=]*=[[:space:]]*//; s/[^"'\'']*["'\'']\([^"'\'']*\)["'\'']/\1 /g' )
 declare -Ar FORGE=( [BASE]="github.com" [BRAW]="raw.githubusercontent.com" [USER]="RaiLopez" [PREF]="git@github-railopez" ) # URL, contentUrl, username, remotePrefix (SSH Alias)
@@ -15,11 +16,11 @@ declare -ar ZIPIGNORE=( "README.md" "LICENSE" "docs" "docs/*" "*/docs/*" "*.zip"
 declare --  PUBLISH=false # Requires the script folder has a repo and 'origin' remote
 declare --  CATALOG_DATA=$(mktemp)
 declare -A  REPORT=( [DUR]=0 [TOT]=0 [LOC]=0 [PUB]=0 [ISS]=0)
-declare --  T_R='\e[1;31m'; T_G='\e[1;32m'; T_Y='\e[1;33m'; T_B='\e[1;34m'; T_D='\e[2m'; T_S='\e[1m' ; T_U='\e[4m'; T_C='\e['; T_N='\e[0m' # Text: Red, Green, Yellow, Blue, Dim; Strong, UL; Custom; Normal/Reset (T_N)
+declare --  T_R='\e[1;31m'; T_G='\e[1;32m'; T_Y='\e[1;33m'; T_B='\e[1;34m'; T_D='\e[2m'; T_S='\e[1m' ; T_U='\e[4m'; T_C='\e['; T_N='\e[0m' # Text: Red; Green; Yellow; Blue; Dim; Strong, UL; Custom; Normal (reset)
 
 # 🛠️ HELPER FUNCTIONS
 debugger(){ # Debug Mode helper for catching errors before closing
-	echo -e "\n❌ ERROR at line $1\n   💻 $2"; read -n1 -p "🏁 Press any key to exit..."; exit 1
+	echo -ne "--- ❌ ${T_R}ERROR @ line $1${T_N}: $2 ${T_D}(Press any key to exit) ${T_N}" && read -n 1 -s && exit
 } # USAGE: unnatended (to be used by trap)
 
 zipper() { # .ZIP packaging function: id ($1), target_path ($2)
@@ -36,30 +37,25 @@ zipper() { # .ZIP packaging function: id ($1), target_path ($2)
 } # USAGE: zipper "$script_id" "$TARGET_DIR"
 
 # 0. INTENT SELECTION
-echo -e "--- 🛈  \e[2;4m${INFO[NAME]} v${INFO[VERSION]} by ${INFO[CREATOR]}\e[0m ---"
-read -n 1 -p "--- ？ Publish to ${FORGE[BASE]}/${FORGE[USER]}/$CORE… when applies? ([Y]es/[N]o/[C]ancel): " confirm
+echo -e "--- 🛈  ${T_C}2;4m${INFO[NAME]} v${INFO[VERSION]} by ${INFO[CREATOR]}${T_N} ---"
+echo -ne "--- ？ Publish to ${FORGE[BASE]}/${FORGE[USER]}/$CORE… when applies? (${T_S}Y${T_N}es/${T_S}N${T_N}o/${T_S}C${T_N}ancel): "; read -n 1 confirm;
 case "$confirm" in
-	y|Y) PUBLISH=true; echo -e "\n--- 🎯 GOAL: Build & ${T_S}Publish${T_N} ${T_D}(💡 'Ctrl+C' to abort)${T_N}"; sleep 1 ;;
+	y|Y) PUBLISH=true; echo -e "\n--- 🎯 ${T_B}GOAL:${T_N} Build & ${T_S}Publish${T_N} ${T_D}(💡 'Ctrl+C' to abort)${T_N}"; sleep 1 ;;
 	c|C) echo -e "\n--- 🛑 CANCELLED: Exiting... "; sleep 0.5; exit 0 ;;
-	*) PUBLISH=false; echo -e "\n--- 🎯 GOAL: Build & Kept Local" ;;
+	*) PUBLISH=false; echo -e "\n--- 🎯 ${T_B}GOAL:${T_N} Build & Kept Local" ;;
 esac
 
-# 1. MIRROR RESET (Without deleting what we want to keep)
+# 1. MIRROR RESET (Surgical to avoid deleting what we want to keep)
 mkdir -p "$CORE_DEST"
-#rm -rf "$CORE_DEST"/* 2>/dev/null
-find "$CORE_DEST" -mindepth 1 -maxdepth 1 \
-    -not -name ".git*" \
-    -not -name "_*" \
-    -exec rm -rf {} + 2>/dev/null
-
 for item in "${INCLUDE[@]}"; do
+	target_item="$CORE_DEST/$(basename "$item")" # Delete item (file or folder) in destination if it exists. We use basename to refer to the name at the root of $CORE_DEST
+	[ -e "$target_item" ] && rm -rf "$target_item"
 	[ -e "$item" ] && cp -r "$item" "$CORE_DEST/"
 done
 
 # 2. PROCESSING (Fixed new ID based "Sacred Logic")
 echo -e "--- ✨ Distributing From Cleaned Mirror: $CORE_DEST"
-#PACKS=$(find "$CORE_DEST" -type f -name "*.lua" -exec grep -l "${VARS[DEP]}" {} + | xargs -I {} basename {} .lua | sort -u) # Generate the "Sacred ID List" looking for ScriptDep Key in *.lua
-PACKS_TEMP=$(find "$CORE_DEST" -type f -name "*.lua" -exec grep -l "${VARS[DEP]}" {} + | xargs -I {} basename {} .lua | grep -v "^${CORE}$" | sort -u)
+PACKS_TEMP=$(find "$CORE_DEST" -type f -name "*.lua" -exec grep -l "${VARS[DEP]}" {} + | xargs -I {} basename {} .lua | grep -v "^${CORE}$" | sort -u) # Generate the "Sacred ID List" looking for ScriptDep Key in *.lua
 PACKS="$PACKS_TEMP $CORE" # The final list (first the packs, and lastly, the Core)
 MONO_MSG=$(git log -1 --pretty=%B | tr -d '\r' | head -n 1)
 MONO_HASH=$(git rev-parse --short HEAD)
@@ -127,10 +123,10 @@ for script_id in $PACKS; do
 	fi
 	[ ! -f "$TARGET_DIR/LICENSE" ] && [ -f "$CORE_DEST/LICENSE" ] && cp "$CORE_DEST/LICENSE" "$TARGET_DIR/" || true # We ensure that there is a LICENSE
 
-	# --- 🧹 2.5. FINALIZING + CLEANUP: Purge orphaned files in target
-	for folder in "Modules" "Tool" "Utility" "ScriptResources" "Menu" "Embed" "Smart"; do
+	# --- 🧹 2.5. FINALIZING + CLEANUP: Purge orphaned files in target (Scan the standard Monorepo folders at the destination and if the file doesn't exist in the Monorepo, delete it)
+	for folder in "${SYNC[@]}"; do
 		if [ -d "$TARGET_DIR/$folder" ]; then
-			find "$TARGET_DIR/$folder" -type f | while read -r target_file; do
+			find "$TARGET_DIR/$folder" -type f -not -path "*/_*" | while read -r target_file; do # Note: `-not -path "*/_*"` protects any file inside folders starting with _ (anywhere)
 				rel_file="${target_file#$TARGET_DIR/}"
 				if [ ! -f "./$rel_file" ]; then
 					rm "$target_file"
@@ -286,11 +282,13 @@ fi
 # 4d. Final Cleanup
 rm -f "$TEMP_TABLE" "$CATALOG_DATA"
 
-# 5. END/RESTART?
-echo -e "--- 🏁 ${T_S}DONE"'!'"${T_N} (In: $(printf '%01d:%02d' $((SECONDS/60)) $((SECONDS%60))) | Total: ${REPORT[TOT]} | Local: ${REPORT[LOC]} | Public: ${REPORT[PUB]} | $([[ ${REPORT[ISS]} -gt 0 ]] && echo -ne "${T_R}" || echo -ne "${T_N}")Issues: ${REPORT[ISS]}${T_N})"
-echo -ne "--- ？ Restart? ${T_D}('y' confirms; any other key exits)${T_N}: "; read -n 1 action; #read -n 1 -p "--- 🏁 DONE! Restart? Press 'y' to confirm (or any key to exit): " action
-if [ "$action" == "y" ] || [ "$action" == "Y" ]; then
-	echo -e "\n--- 🔁 Restarting... \n"; sleep 0.5; exec bash "$0"
+# 5. END/RESTART/SHELL?
+echo -e "--- 🏁 ${T_B}DONE"'!'"${T_N} (In: $(printf '%01d:%02d' $((SECONDS/60)) $((SECONDS%60))) | Total: ${REPORT[TOT]} | Local: ${REPORT[LOC]} | Public: ${REPORT[PUB]} | $([[ ${REPORT[ISS]} -gt 0 ]] && echo -ne "${T_R}" || echo -ne "${T_N}")Issues: ${REPORT[ISS]}${T_N})"
+echo -ne "--- ？ ${T_S}R${T_N}estart? (${T_S}Y${T_N}es/${T_S}S${T_N}hell/${T_S}Any${T_N} to exit): "; read -n 1 action; echo ""
+if [[ "$action" =~ ^[yYrR]$ ]]; then
+	echo -e "--- 🔁 Restarting... \n"; sleep 0.5; exec bash "$0"
+elif [[ "$action" =~ ^[sS]$ ]]; then
+	echo -e "--- 💻 Entering Shell... ${T_D}(💡 Type 'exit' to return to Builder)${T_N}"; bash --login -i; exec bash "$0"
 else
-	echo -e "\n--- ❎ Exiting... "; sleep 0.5; exit 0
+	echo -e "--- ❎ Exiting... "; sleep 0.5; exit 0
 fi
