@@ -238,8 +238,8 @@ EOF
 
 # 4b. Reorder and Process Collected Data
 if [ -s "$CATALOG_DATA" ]; then
-	LINE=$(grep "^${CORE}|" "$CATALOG_DATA")
-	LINES=$(grep -v "^${CORE}|" "$CATALOG_DATA" | sort -t'|' -k2)
+	LINE=$(grep "^${CORE}|" "$CATALOG_DATA") # Group the Core first and...
+	LINES=$(grep -v "^${CORE}|" "$CATALOG_DATA" | sort -t'|' -k2) # ...secondly the others ordered by name (column 2)
 	{ echo "$LINE"; echo "$LINES"; } | while IFS="|" read -r id name ver bld dsc tar url; do
 		[[ -z "$id" ]] && continue
 		PACK_LNK="${URL_BASE}/${id}/"
@@ -256,7 +256,7 @@ if [ -s "$CATALOG_DATA" ]; then
 		done
 		[[ -z "$ICON_URL" ]] && ICON_URL="${URL_RAW_CORE}/ls_fallback@2x.webp"
 
-		# --- ✨ DISPLAY CUSTOMIZATION
+		# --- ✨ DISPLAY CUSTOMIZATION (Core VS. Scripts)
 		if [[ "$id" == "$CORE" ]]; then
 			DISPLAY_NAME="[***LS&nbsp;<sup>Core</sup>***](${PACK_LNK} 'Go to \"$CORE\" repo...') "
 			DISPLAY_DESC="***<sup>Essential shared/common resources, utils, and core modules required by the [Lost Scripts™](https://lost-scripts.github.io/ \"Go to Lost Scripts™ site...\") project for [MOHO](https://moho.lostmarble.com/ \"Go to Moho® homepage...\")<sup> Pro</sup> Animation Software.</sup>***"
