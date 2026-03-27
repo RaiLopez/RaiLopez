@@ -161,8 +161,8 @@ for script_id in $PACKS; do
 			fi
 		fi
 
-		# 🗳️ B. DATA COLLECTION & SYNC (As long as there is a remote!)
-		if [ "$HAS_REMOTE" = true ]; then
+		# 🗳️ B. DATA COLLECTION & SYNC (As long as the pack has a remote or it's the Core!)
+		if [ "$HAS_REMOTE" = true ] || [[ "$script_id" == "$CORE" ]]; then
 			# B1. COLLECTION (Whenever there is a remote, publishing or not)
 			v_name=$(echo "$script_id" | sed 's/ls_//g; s/_/ /g' | awk '{for(i=1;i<=NF;i++)sub(/./,toupper(substr($i,1,1)),$i)}1')
 			v_ver=$(echo "$header" | grep "${VARS[VER]}" | sed -n "${VAREXS[S]}") || true
@@ -171,12 +171,18 @@ for script_id in $PACKS; do
 			v_tar=$(echo "$header" | grep "${VARS[TAR]}" | sed -n "${VAREXS[S]}") || true
 			[[ -z "$v_dsc" ]] && v_dsc="Lost Script $v_name for Moho®."
 			[[ -z "$v_tar" ]] && v_tar="N/D"
-			git tag | grep -Eq '^v?[0-9]+\.[0-9]+\.[0-9]+' && \
-			zip_url="https://${FORGE[BASE]}/${FORGE[USER]}/$script_id/releases/latest/download/${script_id}.zip" || zip_url="https://${FORGE[BASE]}/${FORGE[USER]}/$script_id/archive/refs/heads/main.zip"
+			if [ "$HAS_REMOTE" = true ]; then
+				git tag | grep -Eq '^v?[0-9]+\.[0-9]+\.[0-9]+' && \
+				zip_url="https://${FORGE[BASE]}/${FORGE[USER]}/$script_id/releases/latest/download/${script_id}.zip" || \
+				zip_url="https://${FORGE[BASE]}/${FORGE[USER]}/$script_id/archive/refs/heads/main.zip"
+			else
+				# URL por defecto para el Core si estamos en local/sin remoto
+				zip_url="https://${FORGE[BASE]}/${FORGE[USER]}/${CORE}/releases/latest/download/${CORE}.zip"
+			fi
 			echo "$script_id|$v_name|$v_ver|$v_bld|$v_dsc|$v_tar|$zip_url" >> "$CATALOG_DATA" # Records are always written, whether it's DRY RUN or not
 
 			# B2. SYNC LOGIC (Only if PUBLISH is true)
-			if [ "$PUBLISH" = true ]; then
+			if [ "$PUBLISH" = true ] && [ "$HAS_REMOTE" = true ]; then
 				echo "    🌐 [Git] SYNCING: $script_id"
 				git add .
 				
