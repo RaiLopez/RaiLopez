@@ -7,7 +7,7 @@ declare -ar INCLUDE=( "Embed" "Menu" "Modules" "ScriptResources" "Smart" "Tool" 
 declare -ar SYNC=( "Modules" "Tool" "Utility" "ScriptResources" "Menu" "Embed" "Smart" ) # Pack folders for syncing...
 declare -Ar VARS=( [DEP]="ScriptDep" [VER]="ScriptVersion" [BLD]="ScriptBuild" [DSC]="ScriptDesc" [TAR]="ScriptTarget" ) # Script header variables (if "ScriptDep" is present in a .lua file, it's considered a pack!)
 declare -Ar VAREXS=( [S]='s/.*=[[:space:]]*["'\'']\([^"'\'']*\)["'\''].*/\1/p' [A]='s/[^=]*=[[:space:]]*//; s/[^"'\'']*["'\'']\([^"'\'']*\)["'\'']/\1 /g' ) # Script header variable extractors
-declare -Ar FORGE=( [BASE]="github.com" [BRAW]="raw.githubusercontent.com" [USER]="RaiLopez" [PREF]="git@github-railopez" ) # URL, contentUrl, username, remotePrefix (SSH Alias)
+declare -Ar FORGE=( [BASE]="github.com" [BRAW]="raw.githubusercontent.com" [USER]="RaiLopez" [PREF]="git@github-railopez" ) # URL, contentUrl, username, remotePrefix (SSH Alias), [REPO]="custom" (optional, overrides USER)
 declare -r  CORE="ls"
 declare -r  CORE_DEST="../$CORE"
 declare -r  STRIP_YAML=true
@@ -105,24 +105,22 @@ for script_id in $PACKS; do
 		break 
 	done < <(find "$TARGET_DIR" -name "${script_id}.lua" -type f)
 
-# --- 📄 2.4 HYBRID DOCS PROMOTION
-    if [[ "$script_id" == "$CORE" ]]; then
-        SOURCE_DOCS="./docs/${CORE}"
-    else
-        SOURCE_DOCS="./docs/${script_id}"
-    fi
-    # Acción de copiado única para todos
-    if [ -d "$SOURCE_DOCS" ]; then
-        mkdir -p "$TARGET_DIR/docs"
-        cp -r "$SOURCE_DOCS"/* "$TARGET_DIR/docs/"
-		if [ -f "$TARGET_DIR/docs/index.md" ]; then
-            mv "$TARGET_DIR/docs/index.md" "$TARGET_DIR/docs/README.md"
-        fi
-    fi
-    # Limpieza de YAML (Solo si existe la carpeta)
-    if [ "$STRIP_YAML" = true ] && [ -d "$TARGET_DIR/docs" ]; then
-        find "$TARGET_DIR/docs" -name "*.md" -exec perl -0777 -pi -e 's/\A---\r?\n.*?---\r?\n\s*//s' {} + 2>/dev/null || true
-    fi
+	# --- 📄 2.4 HYBRID DOCS PROMOTION
+	if [[ "$script_id" == "$CORE" ]]; then
+		SOURCE_DOCS="./docs/${CORE}"
+	else
+		SOURCE_DOCS="./docs/${script_id}"
+	fi
+	# Acción de copiado única para todos
+	if [ -d "$SOURCE_DOCS" ]; then
+		mkdir -p "$TARGET_DIR/docs"
+		cp -r "$SOURCE_DOCS"/* "$TARGET_DIR/docs/"
+		[ -f "$TARGET_DIR/docs/index.md" ] && mv "$TARGET_DIR/docs/index.md" "$TARGET_DIR/docs/README.md"
+	fi
+	# Limpieza de YAML (Solo si existe la carpeta)
+	if [ "$STRIP_YAML" = true ] && [ -d "$TARGET_DIR/docs" ]; then
+		find "$TARGET_DIR/docs" -name "*.md" -exec perl -0777 -pi -e 's/\A---\r?\n.*?---\r?\n\s*//s' {} + 2>/dev/null || true
+	fi
 	[ ! -f "$TARGET_DIR/LICENSE" ] && [ -f "$CORE_DEST/LICENSE" ] && cp "$CORE_DEST/LICENSE" "$TARGET_DIR/" || true # We ensure that there is a LICENSE
 
 	# --- 🧹 2.5. FINALIZING + CLEANUP: Purge orphaned files in target (Scan the standard Monorepo folders at the destination and if the file doesn't exist in the Monorepo, delete it)
@@ -232,10 +230,11 @@ OUTPUT_FILE="./docs/README.md"
 TEMP_TABLE=$(mktemp)
 CAT_START='<!-- CATALOG_START -->'
 CAT_END='<!-- CATALOG_END -->'
-MONOREPO="lost-scripts"
+MONOREPO="${FORGE[REPO]:-${FORGE[USER]}}" # CUSTOM or USER 
 URL_BASE="https://${FORGE[BASE]}/${FORGE[USER]}"
 URL_RAW="https://${FORGE[BRAW]}/${FORGE[USER]}"
 URL_RAW_CORE="${URL_RAW}/${CORE}/main/ScriptResources/${CORE}"
+URL_RAW_MONO="https://${FORGE[BRAW]}/${FORGE[USER]}/${MONOREPO}/refs/heads/main"
 
 # 4a. Table Header (Remote icons so they're always visible)
 cat <<EOF > "$TEMP_TABLE"
@@ -253,7 +252,7 @@ if [ -s "$CATALOG_DATA" ]; then
 		PACK_LNK="${URL_BASE}/${id}/"
 
 		# --- 🖼️ ICON LOGIC (Hybrid structure)
-		ICON_URL="https://${FORGE[BRAW]}/${FORGE[USER]}/${MONOREPO}/main/docs/${id}/index_icon.webp"
+		ICON_URL="${URL_RAW_MONO}/docs/${id}/index_icon.webp"
 		[[ -z "$ICON_URL" ]] && ICON_URL="https://${FORGE[BRAW]}/${FORGE[USER]}/${MONOREPO}/main/docs/README_icon_fallback.webp"
 
 		# --- ✨ DISPLAY CUSTOMIZATION (Core VS. Scripts)
