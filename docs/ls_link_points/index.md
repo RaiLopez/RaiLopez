@@ -1,5 +1,5 @@
 ---
-Title: LS Project
+Title: LS Link Points
 Description: Lost Scripts project's common/shared resources.
 Tags: [utilities, resources]
 Subcategory: Index
@@ -8,4 +8,6 @@ Modified: 2024-02-09 00:54:00Z
 Weight: -1
 ---
 
-# LS Wiggle's Readme
+# LS Link Points' Readme
+
+![Icon](index_icon.png)

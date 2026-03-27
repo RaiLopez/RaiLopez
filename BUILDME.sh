@@ -3,7 +3,7 @@ set -euo pipefail; trap 'debugger $LINENO "$BASH_COMMAND"' ERR # Debug Mode (Com
 
 # ⚙ CONFIGURATION
 declare -Ar INFO=( [NAME]="Lost Builder" [VERSION]="1.5.1" [CREATOR]="Rai López" [DESC]="Lost Project's Development Helper" )
-declare -ar INCLUDE=( "Embed" "Menu" "Modules" "ScriptResources" "Smart" "Tool" "Utility" "docs" "README.md" "LICENSE" ) # Note: Make sure the element doesn't remain orphaned in Core if you remove it from here!
+declare -ar INCLUDE=( "Embed" "Menu" "Modules" "ScriptResources" "Smart" "Tool" "Utility" "LICENSE" ) # Note: Make sure the element doesn't remain orphaned in Core if you remove it from here!
 declare -ar SYNC=( "Modules" "Tool" "Utility" "ScriptResources" "Menu" "Embed" "Smart" ) # Pack folders for syncing...
 declare -Ar VARS=( [DEP]="ScriptDep" [VER]="ScriptVersion" [BLD]="ScriptBuild" [DSC]="ScriptDesc" [TAR]="ScriptTarget" ) # Script header variables (if "ScriptDep" is present in a .lua file, it's considered a pack!)
 declare -Ar VAREXS=( [S]='s/.*=[[:space:]]*["'\'']\([^"'\'']*\)["'\''].*/\1/p' [A]='s/[^=]*=[[:space:]]*//; s/[^"'\'']*["'\'']\([^"'\'']*\)["'\'']/\1 /g' ) # Script header variable extractors
@@ -105,22 +105,25 @@ for script_id in $PACKS; do
 		break 
 	done < <(find "$TARGET_DIR" -name "${script_id}.lua" -type f)
 
-	# --- 📄 2.4 DOCS PROMOTION & FALLBACKS
-	LOCAL_RSC="$TARGET_DIR/ScriptResources/$script_id" # We look at the destination because we've already moved it there
-	if [ -d "$LOCAL_RSC" ]; then
-		if [ -f "$LOCAL_RSC/README.md" ]; then
-			cp "$LOCAL_RSC/README.md" "$TARGET_DIR/README.md"
-			if [ "$STRIP_YAML" = true ] && head -n 1 "$TARGET_DIR/README.md" 2>/dev/null | grep -q "^---$"; then # Strip front matter (YAML) & leadings
-				perl -0777 -pi -e 's/\A---\r?\n.*?---\r?\n\s*//s' "$TARGET_DIR/README.md"
-			fi
-		fi
-		[ -d "$LOCAL_RSC/docs" ] && rm -rf "$TARGET_DIR/docs" && cp -r "$LOCAL_RSC/docs" "$TARGET_DIR/"
-		[ -f "$LOCAL_RSC/LICENSE" ] && cp "$LOCAL_RSC/LICENSE" "$TARGET_DIR/LICENSE"
-	fi
-	if [ ! -f "$TARGET_DIR/README.md" ]; then # Fallback in case there's no README after the promotion
-		echo "# $script_id" > "$TARGET_DIR/README.md"
-		echo -e "\nPart of the Lost Scripts collection." >> "$TARGET_DIR/README.md"
-	fi
+# --- 📄 2.4 HYBRID DOCS PROMOTION
+    if [[ "$script_id" == "$CORE" ]]; then
+        # CASO CORE: Queremos lo que hay en docs/ls/
+        SOURCE_DOCS="./docs/${CORE}"
+    else
+        # CASO PACKS: Queremos lo que hay en docs/id/
+        SOURCE_DOCS="./docs/${script_id}"
+    fi
+
+    # Acción de copiado única para todos
+    if [ -d "$SOURCE_DOCS" ]; then
+        mkdir -p "$TARGET_DIR/docs"
+        cp -r "$SOURCE_DOCS"/* "$TARGET_DIR/docs/"
+    fi
+
+    # Limpieza de YAML (Solo si existe la carpeta)
+    if [ "$STRIP_YAML" = true ] && [ -d "$TARGET_DIR/docs" ]; then
+        find "$TARGET_DIR/docs" -name "*.md" -exec perl -0777 -pi -e 's/\A---\r?\n.*?---\r?\n\s*//s' {} + 2>/dev/null || true
+    fi
 	[ ! -f "$TARGET_DIR/LICENSE" ] && [ -f "$CORE_DEST/LICENSE" ] && cp "$CORE_DEST/LICENSE" "$TARGET_DIR/" || true # We ensure that there is a LICENSE
 
 	# --- 🧹 2.5. FINALIZING + CLEANUP: Purge orphaned files in target (Scan the standard Monorepo folders at the destination and if the file doesn't exist in the Monorepo, delete it)
@@ -221,7 +224,7 @@ done
 
 # 4. GENERATING CATALOG
 echo "--- 📝 Updating Monorepo's Catalog ---"
-OUTPUT_FILE="./README.md"
+OUTPUT_FILE="./docs/README.md"
 TEMP_TABLE=$(mktemp)
 CAT_START='<!-- CATALOG_START -->'
 CAT_END='<!-- CATALOG_END -->'
@@ -244,17 +247,15 @@ if [ -s "$CATALOG_DATA" ]; then
 		[[ -z "$id" ]] && continue
 		PACK_LNK="${URL_BASE}/${id}/"
 		
-		# --- 🖼️ ICON CASCADING LOGIC (webp > png > fallback)
-		ICON_URL=""
-		for loc in "Tool" "Menu" "ScriptResources/${id}"; do #  Search in main folders (Tool/Menu) then Resources
-			for ext in "webp" "png"; do
-				if [ -f "../${id}/${loc}/${id}@2x.${ext}" ]; then
-					ICON_URL="${URL_RAW}/${id}/main/${loc}/${id}@2x.${ext}"
-					break 2
-				fi
-			done
-		done
-		[[ -z "$ICON_URL" ]] && ICON_URL="${URL_RAW_CORE}/ls_fallback@2x.webp"
+		# --- 🖼️ ICON LOGIC (Hybrid structure)
+        if [[ "$id" == "$CORE" ]]; then
+            # Icono principal en la raíz de docs
+            ICON_URL="${URL_RAW}/${CORE}/main/docs/README_icon.png"
+        else
+            # Iconos de packs en sus subcarpetas
+            ICON_URL="${URL_RAW}/${CORE}/main/docs/${id}/index_icon.png"
+        fi
+		[[ -z "$ICON_URL" ]] && ICON_URL="${URL_RAW_CORE}/ls_icon_fallback.png"
 
 		# --- ✨ DISPLAY CUSTOMIZATION (Core VS. Scripts)
 		if [[ "$id" == "$CORE" ]]; then
