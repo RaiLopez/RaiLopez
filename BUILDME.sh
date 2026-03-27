@@ -246,8 +246,8 @@ EOF
 
 # 4b. Reorder and Process Collected Data
 if [ -s "$CATALOG_DATA" ]; then
-	LINE=$(grep "^${CORE}|" "$CATALOG_DATA") # Group the Core first and...
-	LINES=$(grep -v "^${CORE}|" "$CATALOG_DATA" | sort -t'|' -k2) # ...secondly the others ordered by name (column 2)
+	LINE=$(grep "^${CORE}|" "$CATALOG_DATA") || true # Group the Core first and...
+	LINES=$(grep -v "^${CORE}|" "$CATALOG_DATA" | sort -t'|' -k2) || true # ...secondly the others ordered by name (column 2)
 	{ echo "$LINE"; echo "$LINES"; } | while IFS="|" read -r id name ver bld dsc tar url; do
 		[[ -z "$id" ]] && continue
 		PACK_LNK="${URL_BASE}/${id}/"
