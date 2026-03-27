@@ -107,19 +107,18 @@ for script_id in $PACKS; do
 
 # --- 📄 2.4 HYBRID DOCS PROMOTION
     if [[ "$script_id" == "$CORE" ]]; then
-        # CASO CORE: Queremos lo que hay en docs/ls/
         SOURCE_DOCS="./docs/${CORE}"
     else
-        # CASO PACKS: Queremos lo que hay en docs/id/
         SOURCE_DOCS="./docs/${script_id}"
     fi
-
     # Acción de copiado única para todos
     if [ -d "$SOURCE_DOCS" ]; then
         mkdir -p "$TARGET_DIR/docs"
         cp -r "$SOURCE_DOCS"/* "$TARGET_DIR/docs/"
+		if [ -f "$TARGET_DIR/docs/index.md" ]; then
+            mv "$TARGET_DIR/docs/index.md" "$TARGET_DIR/docs/README.md"
+        fi
     fi
-
     # Limpieza de YAML (Solo si existe la carpeta)
     if [ "$STRIP_YAML" = true ] && [ -d "$TARGET_DIR/docs" ]; then
         find "$TARGET_DIR/docs" -name "*.md" -exec perl -0777 -pi -e 's/\A---\r?\n.*?---\r?\n\s*//s' {} + 2>/dev/null || true
@@ -233,6 +232,7 @@ OUTPUT_FILE="./docs/README.md"
 TEMP_TABLE=$(mktemp)
 CAT_START='<!-- CATALOG_START -->'
 CAT_END='<!-- CATALOG_END -->'
+MONOREPO="lost-scripts"
 URL_BASE="https://${FORGE[BASE]}/${FORGE[USER]}"
 URL_RAW="https://${FORGE[BRAW]}/${FORGE[USER]}"
 URL_RAW_CORE="${URL_RAW}/${CORE}/main/ScriptResources/${CORE}"
@@ -253,8 +253,8 @@ if [ -s "$CATALOG_DATA" ]; then
 		PACK_LNK="${URL_BASE}/${id}/"
 		
 		# --- 🖼️ ICON LOGIC (Hybrid structure)
-		ICON_URL="${URL_RAW}/${CORE}/main/docs/${id}/index_icon.webp"
-		[[ -z "$ICON_URL" ]] && ICON_URL="${URL_RAW}/${CORE}/main/docs/README_icon_fallback.webp"
+		ICON_URL="https://${FORGE[BRAW]}/${FORGE[USER]}/${MONOREPO}/main/docs/${id}/index_icon.webp"
+		[[ -z "$ICON_URL" ]] && ICON_URL="https://${FORGE[BRAW]}/${FORGE[USER]}/${MONOREPO}/main/docs/README_icon_fallback.webp"
 
 		# --- ✨ DISPLAY CUSTOMIZATION (Core VS. Scripts)
 		if [[ "$id" == "$CORE" ]]; then
