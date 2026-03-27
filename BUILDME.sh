@@ -141,14 +141,14 @@ for script_id in $PACKS; do
 	find "$TARGET_DIR" -type d -empty -not -path "*/.git*" -delete 2>/dev/null || true
 
 	# --- 🚀 2.6. GIT SYNC & CATALOG DATA
-	if [ -d "$TARGET_DIR/.git" ]; then
-		cd "$TARGET_DIR" || exit
+	if [ -d "$TARGET_DIR/.git" ] || [[ "$script_id" == "$CORE" ]]; then
+		[[ -d "$TARGET_DIR/.git" ]] && cd "$TARGET_DIR" || true
 
 		# 📶 A. REMOTE CHECK (Essential to know if the script is "catalogable")
 		HAS_REMOTE=false
-		if git remote | grep -q "origin"; then
+		if git remote 2>/dev/null | grep -q "origin"; then
 			HAS_REMOTE=true
-		elif [ "$PUBLISH" = true ]; then # We only try to add remote if we want to publish.
+		elif [ "$PUBLISH" = true ] && [ -d "$TARGET_DIR/.git" ]; then # We only try to add remote if we want to publish.
 			REMOTE_URL="${FORGE[PREF]}:${FORGE[USER]}/${script_id}.git"
 			echo -e "    ⚠️  ${T_Y}Warning:${T_N} No remote 'origin' detected..."
 			read -n 1 -p "    🔗 Add '$REMOTE_URL' and push? (y/n): " answer < /dev/tty; echo ""
@@ -172,16 +172,15 @@ for script_id in $PACKS; do
 			[[ -z "$v_dsc" ]] && v_dsc="Lost Script $v_name for Moho®."
 			[[ -z "$v_tar" ]] && v_tar="N/D"
 			if [ "$HAS_REMOTE" = true ]; then
-				git tag | grep -Eq '^v?[0-9]+\.[0-9]+\.[0-9]+' && \
+				git tag 2>/dev/null | grep -Eq '^v?[0-9]+\.[0-9]+\.[0-9]+' && \
 				zip_url="https://${FORGE[BASE]}/${FORGE[USER]}/$script_id/releases/latest/download/${script_id}.zip" || \
 				zip_url="https://${FORGE[BASE]}/${FORGE[USER]}/$script_id/archive/refs/heads/main.zip"
 			else
-				# URL por defecto para el Core si estamos en local/sin remoto
 				zip_url="https://${FORGE[BASE]}/${FORGE[USER]}/${CORE}/releases/latest/download/${CORE}.zip"
 			fi
 			echo "$script_id|$v_name|$v_ver|$v_bld|$v_dsc|$v_tar|$zip_url" >> "$CATALOG_DATA" # Records are always written, whether it's DRY RUN or not
 
-			# B2. SYNC LOGIC (Only if PUBLISH is true)
+			# B2. SYNC LOGIC (Only if there is remote and PUBLISH is true)
 			if [ "$PUBLISH" = true ] && [ "$HAS_REMOTE" = true ]; then
 				echo "    🌐 [Git] SYNCING: $script_id"
 				git add .
@@ -215,7 +214,7 @@ for script_id in $PACKS; do
 			fi
 			((++REPORT[PUB]))
 		fi
-		cd - > /dev/null
+		[[ -d "$TARGET_DIR/.git" ]] && cd - > /dev/null || true
 	else
 		if [ "$PUBLISH" = true ]; then # Only log that it's local-only if the user intended to post
 			echo "    ℹ️  $script_id is local-only (No .git folder)."
@@ -254,13 +253,13 @@ if [ -s "$CATALOG_DATA" ]; then
 		PACK_LNK="${URL_BASE}/${id}/"
 		
 		# --- 🖼️ ICON LOGIC (Hybrid structure)
-		if [[ "$id" == "$CORE" ]]; then
-			# Icono principal en la raíz de docs
-			ICON_URL="${URL_RAW}/${CORE}/main/docs/README_icon.png"
-		else
-			# Iconos de packs en sus subcarpetas
-			ICON_URL="${URL_RAW}/${CORE}/main/docs/${id}/index_icon.png"
-		fi
+        if [[ "$id" == "$CORE" ]]; then
+            # Icono principal en la raíz de docs
+            ICON_URL="${URL_RAW}/${CORE}/main/docs/README_icon.png"
+        else
+            # Iconos de packs en sus subcarpetas
+            ICON_URL="${URL_RAW}/${CORE}/main/docs/${id}/index_icon.png"
+        fi
 		[[ -z "$ICON_URL" ]] && ICON_URL="${URL_RAW_CORE}/ls_icon_fallback.png"
 
 		# --- ✨ DISPLAY CUSTOMIZATION (Core VS. Scripts)
