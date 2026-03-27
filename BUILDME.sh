@@ -251,7 +251,7 @@ if [ -s "$CATALOG_DATA" ]; then
 	{ echo "$LINE"; echo "$LINES"; } | while IFS="|" read -r id name ver bld dsc tar url; do
 		[[ -z "$id" ]] && continue
 		PACK_LNK="${URL_BASE}/${id}/"
-		
+
 		# --- 🖼️ ICON LOGIC (Hybrid structure)
 		ICON_URL="https://${FORGE[BRAW]}/${FORGE[USER]}/${MONOREPO}/main/docs/${id}/index_icon.webp"
 		[[ -z "$ICON_URL" ]] && ICON_URL="https://${FORGE[BRAW]}/${FORGE[USER]}/${MONOREPO}/main/docs/README_icon_fallback.webp"
