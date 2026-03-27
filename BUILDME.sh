@@ -254,13 +254,13 @@ if [ -s "$CATALOG_DATA" ]; then
 		PACK_LNK="${URL_BASE}/${id}/"
 		
 		# --- 🖼️ ICON LOGIC (Hybrid structure)
-        if [[ "$id" == "$CORE" ]]; then
-            # Icono principal en la raíz de docs
-            ICON_URL="${URL_RAW}/${CORE}/main/docs/README_icon.png"
-        else
-            # Iconos de packs en sus subcarpetas
-            ICON_URL="${URL_RAW}/${CORE}/main/docs/${id}/index_icon.png"
-        fi
+		if [[ "$id" == "$CORE" ]]; then
+			# Icono principal en la raíz de docs
+			ICON_URL="${URL_RAW}/${CORE}/main/docs/README_icon.png"
+		else
+			# Iconos de packs en sus subcarpetas
+			ICON_URL="${URL_RAW}/${CORE}/main/docs/${id}/index_icon.png"
+		fi
 		[[ -z "$ICON_URL" ]] && ICON_URL="${URL_RAW_CORE}/ls_icon_fallback.png"
 
 		# --- ✨ DISPLAY CUSTOMIZATION (Core VS. Scripts)
