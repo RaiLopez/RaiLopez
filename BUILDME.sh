@@ -125,6 +125,7 @@ for script_id in $PACKS; do
 
 	# --- 🧹 2.5. FINALIZING + CLEANUP: Purge orphaned files in target (Scan the standard Monorepo folders at the destination and if the file doesn't exist in the Monorepo, delete it)
 	for folder in "${SYNC[@]}"; do
+		[[ "$folder" == "docs" ]] && continue
 		if [ -d "$TARGET_DIR/$folder" ]; then
 			find "$TARGET_DIR/$folder" -type f -not -path "*/_*" | while read -r target_file; do # Note: `-not -path "*/_*"` protects any file inside folders starting with _ (anywhere)
 				rel_file="${target_file#$TARGET_DIR/}"
