@@ -2,19 +2,19 @@
 set -euo pipefail; trap 'debugger $LINENO "$BASH_COMMAND"' ERR # Debug Mode (Comment/Uncomment as needed)
 
 # ⚙ CONFIGURATION
-declare -Ar INFO=( [NAME]="Lost Builder" [VERSION]="1.5.1" [CREATOR]="Rai López" [DESC]="Lost Project's Development Helper" )
+declare -Ar INFO=( [NAME]="Lost Builder" [VERSION]="1.6.0" [CREATOR]="Rai López" [DESC]="Lost Project's Development Helper" )
 declare -ar INCLUDE=( "Embed" "Menu" "Modules" "ScriptResources" "Smart" "Tool" "Utility" "LICENSE" ) # Note: Make sure the element doesn't remain orphaned in Core if you remove it from here!
 declare -ar SYNC=( "Modules" "Tool" "Utility" "ScriptResources" "Menu" "Embed" "Smart" ) # Pack folders for syncing...
 declare -Ar VARS=( [DEP]="ScriptDep" [VER]="ScriptVersion" [BLD]="ScriptBuild" [DSC]="ScriptDesc" [TAR]="ScriptTarget" ) # Script header variables (if "ScriptDep" is present in a .lua file, it's considered a pack!)
 declare -Ar VAREXS=( [S]='s/.*=[[:space:]]*["'\'']\([^"'\'']*\)["'\''].*/\1/p' [A]='s/[^=]*=[[:space:]]*//; s/[^"'\'']*["'\'']\([^"'\'']*\)["'\'']/\1 /g' ) # Script header variable extractors
-declare -Ar FORGE=( [BASE]="github.com" [BRAW]="raw.githubusercontent.com" [USER]="RaiLopez" [PREF]="git@github-railopez" ) # URL, contentUrl, username, remotePrefix (SSH Alias), [REPO]="custom" (optional, overrides USER)
+declare -Ar FORGE=( [BASE]="github.com" [BRAW]="raw.githubusercontent.com" [USER]="RaiLopez" [PREF]="git@github-railopez" ) # URL, contentUrl, username, remotePrefix (SSH Alias), [MONO]="custom-repo" (optional, overrides USER)
 declare -r  CORE="ls"
 declare -r  CORE_DEST="../$CORE"
 declare -r  STRIP_YAML=true
 declare -r  DISTDIR="_dist" # Specifying a directory implies creating ZIPs (assuming zip.exe & bzip2.dll exist in %ProgramFiles%\Git\usr\bin)
 declare -ar ZIPIGNORE=( "README.md" "LICENSE" "docs" "docs/*" "*/docs/*" "*.zip" )
-declare --  PUBLISH=false # Requires the script folder has a repo and 'origin' remote
 declare --  CATALOG_DATA=$(mktemp)
+declare --  PUBLISH=false # Requires the script folder has a repo and 'origin' remote
 declare -A  REPORT=( [DUR]=0 [TOT]=0 [LOC]=0 [PUB]=0 [ISS]=0)
 declare --  T_R='\e[1;31m'; T_G='\e[1;32m'; T_Y='\e[1;33m'; T_B='\e[1;34m'; T_D='\e[2m'; T_S='\e[1m' ; T_U='\e[4m'; T_C='\e['; T_N='\e[0m' # Text: Red; Green; Yellow; Blue; Dim; Strong, UL; Custom; Normal (reset)
 
@@ -105,27 +105,25 @@ for script_id in $PACKS; do
 		break 
 	done < <(find "$TARGET_DIR" -name "${script_id}.lua" -type f)
 
-	# --- 📄 2.4 HYBRID DOCS PROMOTION
+	# --- 📄 2.4 HYBRID DOCS PROMOTION & FALLBACKS
 	if [[ "$script_id" == "$CORE" ]]; then
 		SOURCE_DOCS="./docs/${CORE}"
 	else
 		SOURCE_DOCS="./docs/${script_id}"
 	fi
-	# Acción de copiado única para todos
 	if [ -d "$SOURCE_DOCS" ]; then
 		mkdir -p "$TARGET_DIR/docs"
 		cp -r "$SOURCE_DOCS"/* "$TARGET_DIR/docs/"
 		[ -f "$TARGET_DIR/docs/index.md" ] && mv "$TARGET_DIR/docs/index.md" "$TARGET_DIR/docs/README.md"
 	fi
-	# Limpieza de YAML (Solo si existe la carpeta)
-	if [ "$STRIP_YAML" = true ] && [ -d "$TARGET_DIR/docs" ]; then
+	if [ "$STRIP_YAML" = true ] && [ -d "$TARGET_DIR/docs" ]; then # Strip front matter (YAML) & leadings
 		find "$TARGET_DIR/docs" -name "*.md" -exec perl -0777 -pi -e 's/\A---\r?\n.*?---\r?\n\s*//s' {} + 2>/dev/null || true
 	fi
-	[ ! -f "$TARGET_DIR/LICENSE" ] && [ -f "$CORE_DEST/LICENSE" ] && cp "$CORE_DEST/LICENSE" "$TARGET_DIR/" || true # We ensure that there is a LICENSE
+	[ ! -f "$TARGET_DIR/LICENSE" ] && [ -f "$CORE_DEST/LICENSE" ] && cp "$CORE_DEST/LICENSE" "$TARGET_DIR/" || true # Ensure that there is a LICENSE
 
 	# --- 🧹 2.5. FINALIZING + CLEANUP: Purge orphaned files in target (Scan the standard Monorepo folders at the destination and if the file doesn't exist in the Monorepo, delete it)
 	for folder in "${SYNC[@]}"; do
-		[[ "$folder" == "docs" ]] && continue
+		[[ "$folder" == "docs" ]] && continue # Skip docs folder!
 		if [ -d "$TARGET_DIR/$folder" ]; then
 			find "$TARGET_DIR/$folder" -type f -not -path "*/_*" | while read -r target_file; do # Note: `-not -path "*/_*"` protects any file inside folders starting with _ (anywhere)
 				rel_file="${target_file#$TARGET_DIR/}"
@@ -178,7 +176,7 @@ for script_id in $PACKS; do
 			fi
 			echo "$script_id|$v_name|$v_ver|$v_bld|$v_dsc|$v_tar|$zip_url" >> "$CATALOG_DATA" # Records are always written, whether it's DRY RUN or not
 
-			# B2. SYNC LOGIC (Only if there is remote and PUBLISH is true)
+			# B2. SYNC LOGIC (Only if PUBLISH is true and there is remote)
 			if [ "$PUBLISH" = true ] && [ "$HAS_REMOTE" = true ]; then
 				echo "    🌐 [Git] SYNCING: $script_id"
 				git add .
@@ -231,7 +229,7 @@ OUTPUT_FILE="./docs/README.md"
 TEMP_TABLE=$(mktemp)
 CAT_START='<!-- CATALOG_START -->'
 CAT_END='<!-- CATALOG_END -->'
-MONOREPO="${FORGE[REPO]:-${FORGE[USER]}}" # CUSTOM or USER 
+MONOREPO="${FORGE[MONO]:-${FORGE[USER]}}" # CUSTOM or USER (Same name as user by default)
 URL_BASE="https://${FORGE[BASE]}/${FORGE[USER]}"
 URL_RAW="https://${FORGE[BRAW]}/${FORGE[USER]}"
 URL_RAW_CORE="${URL_RAW}/${CORE}/main/ScriptResources/${CORE}"
@@ -254,7 +252,7 @@ if [ -s "$CATALOG_DATA" ]; then
 
 		# --- 🖼️ ICON LOGIC (Hybrid structure)
 		ICON_URL="${URL_RAW_MONO}/docs/${id}/index_icon.webp"
-		[[ -z "$ICON_URL" ]] && ICON_URL="https://${FORGE[BRAW]}/${FORGE[USER]}/${MONOREPO}/main/docs/README_icon_fallback.webp"
+		[[ -z "$ICON_URL" ]] && ICON_URL="${URL_RAW_MONO}/docs/README_icon_fallback.webp"
 
 		# --- ✨ DISPLAY CUSTOMIZATION (Core VS. Scripts)
 		if [[ "$id" == "$CORE" ]]; then
