@@ -2,7 +2,7 @@
 set -euo pipefail; trap 'debugger $LINENO "$BASH_COMMAND"' ERR # Debug Mode (Comment/Uncomment as needed)
 
 # ⚙ CONFIGURATION
-declare -Ar INFO=( [NAME]="Lost Builder" [VERSION]="1.6.0" [CREATOR]="Rai López" [DESC]="Lost Project's Development Helper" )
+declare -Ar INFO=( [NAME]="Lost Builder" [VERSION]="1.6.2" [CREATOR]="Rai López" [DESC]="Lost Project's Development Helper" )
 declare -ar INCLUDE=( "Embed" "Menu" "Modules" "ScriptResources" "Smart" "Tool" "Utility" "LICENSE" ) # Note: Make sure the element doesn't remain orphaned in Core if you remove it from here!
 declare -ar SYNC=( "Modules" "Tool" "Utility" "ScriptResources" "Menu" "Embed" "Smart" ) # Pack folders for syncing...
 declare -Ar VARS=( [DEP]="ScriptDep" [VER]="ScriptVersion" [BLD]="ScriptBuild" [DSC]="ScriptDesc" [TAR]="ScriptTarget" ) # Script header variables (if "ScriptDep" is present in a .lua file, it's considered a pack!)
@@ -11,7 +11,8 @@ declare -Ar FORGE=( [BASE]="github.com" [BRAW]="raw.githubusercontent.com" [USER
 declare -r  CORE="ls"
 declare -r  CORE_DEST="../$CORE"
 declare -r  STRIP_YAML=true
-declare -r  DISTDIR="_dist" # Specifying a directory implies creating ZIPs (assuming zip.exe & bzip2.dll exist in %ProgramFiles%\Git\usr\bin)
+declare -r  DOCSDIR="./docs" # Monorepo's bunker
+declare -r  DISTDIR="_dist" # Specifying a directory, that will be placed at ./docs/id/, implies creating ZIPs (assuming zip.exe & bzip2.dll exist in %ProgramFiles%\Git\usr\bin)
 declare -ar ZIPIGNORE=( "README.md" "LICENSE" "docs" "docs/*" "*/docs/*" "*.zip" )
 declare --  CATALOG_DATA=$(mktemp)
 declare --  PUBLISH=false # Requires the script folder has a repo and 'origin' remote
@@ -24,16 +25,18 @@ debugger(){ # Debug Mode helper for catching errors before closing
 } # USAGE: unnatended (to be used by trap)
 
 zipper() { # .ZIP packaging function: id ($1), target_path ($2)
-	local id="$1"; local target="$2"
-	[[ -z "$DISTDIR" ]] || ! command -v zip >/dev/null 2>&1 && return
+	local id="$1"; local target="$2"; local mono_root="$PWD" # The actual route of the monorepo BEFORE moving
+	[[ -z "$DISTDIR" ]] && return
+    ! command -v zip >/dev/null 2>&1 && return
+	local out_path="${DOCSDIR}/${id}/${DISTDIR}"
+    mkdir -p "$out_path"
 	(
 		cd "$target" || exit
-		mkdir -p "$DISTDIR"
-		local exclude_args=(-x ".git*" "$DISTDIR/*" "$DISTDIR") # Build exclusions array (Bash-friendly)
+		local exclude_args=(-x ".git*" "_*" "*/_*") # Build exclusions array (Bash-friendly)
 		for p in "${ZIPIGNORE[@]}"; do exclude_args+=("-x" "$p"); done
-		zip -rq "$DISTDIR/${id}.zip" . "${exclude_args[@]}" # Execute zip with the array of arguments (preserves quotes/spaces)
+		zip -rq "${mono_root}/${out_path}/${id}.zip" . "${exclude_args[@]}" # Execute zip with the array of arguments (preserves quotes/spaces)
 	)
-	[ -f "$target/$DISTDIR/${id}.zip" ] && echo "    🗜  ZIP updated in $target/$DISTDIR/${id}.zip"
+	[ -f "$out_path/${id}.zip" ] && echo "    🗜  ZIP updated in $out_path/${id}.zip"
 } # USAGE: zipper "$script_id" "$TARGET_DIR"
 
 # 0. INTENT SELECTION
@@ -113,8 +116,8 @@ for script_id in $PACKS; do
 	fi
 	if [ -d "$SOURCE_DOCS" ]; then
 		mkdir -p "$TARGET_DIR/docs"
-		cp -r "$SOURCE_DOCS"/* "$TARGET_DIR/docs/"
-		[ -f "$TARGET_DIR/docs/index.md" ] && mv "$TARGET_DIR/docs/index.md" "$TARGET_DIR/docs/README.md"
+		find "$SOURCE_DOCS" -maxdepth 1 -not -name "_*" -not -name "$(basename "$SOURCE_DOCS")" -exec cp -r {} "$TARGET_DIR/docs/" \; 2>/dev/null || true
+        [ -f "$TARGET_DIR/docs/index.md" ] && mv "$TARGET_DIR/docs/index.md" "$TARGET_DIR/docs/README.md"
 	fi
 	if [ "$STRIP_YAML" = true ] && [ -d "$TARGET_DIR/docs" ]; then # Strip front matter (YAML) & leadings
 		find "$TARGET_DIR/docs" -name "*.md" -exec perl -0777 -pi -e 's/\A---\r?\n.*?---\r?\n\s*//s' {} + 2>/dev/null || true
