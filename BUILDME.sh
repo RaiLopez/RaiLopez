@@ -257,7 +257,7 @@ if [ -s "$CATALOG_DATA" ]; then
 		# --- ✨ DISPLAY CUSTOMIZATION (Core VS. Scripts)
 		if [[ "$id" == "$CORE" ]]; then
 			DISPLAY_NAME="[***LS&nbsp;<sup>Core</sup>***](${PACK_LNK} 'Go to \"$CORE\" repo...') "
-			DISPLAY_DESC="***<sup>Essential shared resources, utilities, and core modules required for the [Lost Scripts™](https://lost-scripts.github.io/ \"Go to Lost Scripts™ site...\") project to work with [MOHO](https://moho.lostmarble.com/ \"Go to Moho® homepage...\")<sup>&nbsp;Pro</sup> Animation Software&emsp;&emsp;&emsp;.</sup>***"
+			DISPLAY_DESC="***<sup>Essential shared resources, utilities, and core modules required for the [Lost Scripts™](https://lost-scripts.github.io/ \"Go to Lost Scripts™ site...\") project to work with [MOHO](https://moho.lostmarble.com/ \"Go to Moho® homepage...\")<sup>&nbsp;Pro</sup> Animation Software.&emsp;</sup>***"
 		else
 			DISPLAY_NAME="[<sup>**$name**</sup>](${PACK_LNK} 'Go to \"$id\" repo...')<br><sub><sup title='Build: $bld'>v$ver</sup></sub>"
 			DISPLAY_DESC="<sup>$dsc</sup><br><sub><sup>𝓲 For Moho $tar</sup></sub>"
