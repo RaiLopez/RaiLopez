@@ -12,7 +12,7 @@ declare -r  CORE="ls"
 declare -r  CORE_DEST="../$CORE"
 declare -r  STRIP_YAML=true
 declare -r  DOCSDIR="./docs" # Monorepo's bunker
-declare -r  DISTDIR="_dist" # Specifying a directory, that will be placed at ./docs/id/, implies creating ZIPs (assuming zip.exe & bzip2.dll exist in %ProgramFiles%\Git\usr\bin)
+declare -r  DISTDIR="_dist" # Specifying a directory implies creating ZIPs at ./docs/id/$DISTDIR (assuming zip.exe & bzip2.dll exist in %ProgramFiles%\Git\usr\bin)
 declare -ar ZIPIGNORE=( "README.md" "LICENSE" "docs" "docs/*" "*/docs/*" "*.zip" )
 declare --  CATALOG_DATA=$(mktemp)
 declare --  PUBLISH=false # Requires the script folder has a repo and 'origin' remote
@@ -27,9 +27,9 @@ debugger(){ # Debug Mode helper for catching errors before closing
 zipper() { # .ZIP packaging function: id ($1), target_path ($2)
 	local id="$1"; local target="$2"; local mono_root="$PWD" # The actual route of the monorepo BEFORE moving
 	[[ -z "$DISTDIR" ]] && return
-    ! command -v zip >/dev/null 2>&1 && return
+	! command -v zip >/dev/null 2>&1 && return
 	local out_path="${DOCSDIR}/${id}/${DISTDIR}" # Preparing the folder in the Monorepo (e.g. ./docs/ls_script/_dist)
-    mkdir -p "$out_path"
+	mkdir -p "$out_path"
 	(
 		cd "$target" || exit
 		local exclude_args=(-x ".git*" "_*" "*/_*") # Build exclusions array (Bash-friendly)
@@ -117,7 +117,7 @@ for script_id in $PACKS; do
 	if [ -d "$SOURCE_DOCS" ]; then
 		mkdir -p "$TARGET_DIR/docs"
 		find "$SOURCE_DOCS" -maxdepth 1 -not -name "_*" -not -name "$(basename "$SOURCE_DOCS")" -exec cp -r {} "$TARGET_DIR/docs/" \; 2>/dev/null || true
-        [ -f "$TARGET_DIR/docs/index.md" ] && mv "$TARGET_DIR/docs/index.md" "$TARGET_DIR/docs/README.md"
+		[ -f "$TARGET_DIR/docs/index.md" ] && mv "$TARGET_DIR/docs/index.md" "$TARGET_DIR/docs/README.md"
 	fi
 	if [ "$STRIP_YAML" = true ] && [ -d "$TARGET_DIR/docs" ]; then # Strip front matter (YAML) & leadings
 		find "$TARGET_DIR/docs" -name "*.md" -exec perl -0777 -pi -e 's/\A---\r?\n.*?---\r?\n\s*//s' {} + 2>/dev/null || true
@@ -254,8 +254,8 @@ if [ -s "$CATALOG_DATA" ]; then
 		PACK_LNK="${URL_BASE}/${id}/"
 
 		# --- 🖼️ ICON LOGIC (Hybrid structure)
-		ICON_URL="${URL_RAW_MONO}/docs/${id}/index_icon.webp"
-		[[ -z "$ICON_URL" ]] && ICON_URL="${URL_RAW_MONO}/docs/README_icon_fallback.webp"
+		ICON_URL="${URL_RAW_MONO}/docs/${id}/assets/icon.webp"
+		[[ -z "$ICON_URL" ]] && ICON_URL="${URL_RAW_MONO}/docs/assets/icon_fallback.webp"
 
 		# --- ✨ DISPLAY CUSTOMIZATION (Core VS. Scripts)
 		if [[ "$id" == "$CORE" ]]; then
