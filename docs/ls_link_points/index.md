@@ -10,4 +10,4 @@ Weight: -1
 
 # LS Link Points' Readme
 
-![Icon](index_icon.png)
+![Icon](assets/icon.png)

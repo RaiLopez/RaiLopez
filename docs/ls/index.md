@@ -1,3 +1,3 @@
 # LS' Readme
 
-![Icon](index_icon.png)
+![Icon](assets/icon.png)

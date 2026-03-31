@@ -28,7 +28,7 @@ zipper() { # .ZIP packaging function: id ($1), target_path ($2)
 	local id="$1"; local target="$2"; local mono_root="$PWD" # The actual route of the monorepo BEFORE moving
 	[[ -z "$DISTDIR" ]] && return
     ! command -v zip >/dev/null 2>&1 && return
-	local out_path="${DOCSDIR}/${id}/${DISTDIR}"
+	local out_path="${DOCSDIR}/${id}/${DISTDIR}" # Preparing the folder in the Monorepo (e.g. ./docs/ls_script/_dist)
     mkdir -p "$out_path"
 	(
 		cd "$target" || exit

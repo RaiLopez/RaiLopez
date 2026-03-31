@@ -10,4 +10,4 @@ Weight: -1
 
 # LS Wiggle's Readme
 
-![Icon](index_icon.png)
+![ ](assets/icon.png "Icon")
