@@ -70,7 +70,7 @@ Provides all the necessary shared/common resources and helpers that [Moho®](htt
 	</tr>
 	<tr>
 		<td width="96" align="center" valign="middle">
-			<a inert href="#!" style="cursor: default;"><img src="../../docs/ls_shapes/assets/icon.png" alt="Icon!" width="50%" class="colorize"></a>
+			<a inert href="#!" style="cursor: default;"><img src="https://raw.githubusercontent.com/RaiLopez/ls_shapes/main/docs/assets/icon.png" alt="Icon" width="50%" class="colorize"></a>
 		</td>
 		<td width="1920" valign="middle">
 			<div>
@@ -135,7 +135,7 @@ Starting from you have already unzipped the downloaded file, you actually have t
 			2. Drag & Drop (or Copy & Paste) them all into the <em>Scripts</em> folder of your <a href="https://manual.lostmarble.com/app/page/1bmBks7y8KPdbPd-ll9kQGPdZJfDf3Rq67BCp8F5Y-FI?p=1UxA8Gi5DttJku9AmFlSpO0gJw4U9flX3" title="Go to Moho manual">Custom Content Folder</a>.
 		</td>
 		<td>
-			2. Press <em>Select A Script Folder</em> button, browse to the just uzipped folder (e.g. ls_shapes_window) and select it.
+			2. Press <em>Select A Script Folder</em> button, browse to the just unzipped folder (e.g. ls_shapes_window) and select it.
 		</td>
 	</tr>
 	<tr valign="top">
