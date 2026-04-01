@@ -18,7 +18,9 @@ Weight: -1
 <table width="100%" border="0">
 	<tr>
 		<th align="left" valign="middle" width="72">
-			<img src="assets/icon.png" title="Icon" class="colorize">
+			<picture title="Icon">
+				<source media="(prefers-color-scheme: dark)" srcset="assets/icon_dark.png"><img src="assets/icon.png" width="96" class="colorize">
+			</picture>
 		</th>
 		<th align="right" valign="middle" width="1920" nowrap>
 			<a href="https://moho.lostmarble.com/" title="Go to Moho website"><img height="20px" src="https://img.shields.io/badge/For-Moho_Pro_14.3+-orange" alt="Moho version"></a>
