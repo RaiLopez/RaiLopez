@@ -33,13 +33,13 @@ Weight: -1
 | :--------------------------- | ----------------------------------------------: |
 -->
 
-# LS Project
+# *LS<sub><sup><sup> Core</sup></sup></sub>*
 
-Provides all the necessary shared/common resources and helpers that [Moho®](https://moho.lostmarble.com/) needs for the well functioning of *Lost Scripts™* and derivatives. If something didn't work as expected... check it's up to date!
+Provides all the necessary shared/common resources and helpers that *[Moho®](https://moho.lostmarble.com/) Animation Software* needs for the well functioning of *Lost Scripts™* and derivatives. If something didn't work as expected... check it's up to date!
 
 <br>
 
-## Featured Scripts
+## *Featured Scripts*
 
 <!-- Pure Markdown style cards...
 | [![m1-1i]][m1-1a] | <div align="right">[![m1-3i]][m1-3a] [![m1-4i]][m1-4a] [![m1-5i]][m1-5a]</div> |
@@ -103,13 +103,13 @@ Provides all the necessary shared/common resources and helpers that [Moho®](htt
 
 <br>
 
-## Features
+## *Features*
 
-More than user-facing features, *LS Project* works under the hood not only to meet the development requirements of *Lost Scripts™* like the ones just bellow, but also to extend (within the possible) the scripting possibilities of the program with *new* kind of functions, methods, UI widgets and more...
+More than user-facing features, *LS<sub><sup><sup> Core</sup></sup></sub>* works under the hood not only to meet the development requirements of *Lost Scripts™* like the ones just above, but also to extend (within the limits) the scripting possibilities of the program with *new* kind of functions, methods, UI widgets and more...
 
 <br>
 
-## Installation
+## *Installation*
 
 Starting from you have already unzipped the downloaded file, you actually have two different installation methods...
 
@@ -152,19 +152,19 @@ Starting from you have already unzipped the downloaded file, you actually have t
 
 <br>
 
-## Usage
+## *Usage*
 
-As a regular Moho® user, you will not normally have to interact with this set of utilities beyond applying updates when available or required. As a script developer, **in the future** (WIP!) you will be able to make use of the modules and facilities it provides in a similar way as you would with official ones.
+As a regular *Moho®* user, you will not normally have to interact with this set of utilities beyond applying updates when available or required. As a script developer, **in the future** (WIP!) you will be able to make use of the modules and facilities it provides in a similar way as you would with official ones.
 
 <br>
 
-## Collab & Support
+## *Collab & Support*
 
 Suggestions and bugs can be reported in the [<i>Issues</i>](https://github.com/lost-scripts/ls/issues "Go to ''Issues'' section") section (preferably) or in the corresponding topic, if any, in [<i>Scripting</i>](https://www.lostmarble.com/forum/viewforum.php?f=12 "Go to Lost Marble Forum's ''Scripting'' section") section of the [<i>Lost Marble Forum</i>](https://www.lostmarble.com/forum "Go to the ''Lost Marble Forum''").
 
 <br>
 
-## Other...
+## *Other...*
 
 - <a href="https://lost-scripts.github.io/scripts/ls" data-alt-href="https://github.com/lost-scripts/ls" data-alt-textContent="LS repository" data-alt-title="Go to the LS repository...">LS webpage</a>
 
