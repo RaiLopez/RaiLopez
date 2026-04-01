@@ -70,7 +70,7 @@ Provides all the necessary shared/common resources and helpers that [Moho®](htt
 	</tr>
 	<tr>
 		<td width="96" align="center" valign="middle">
-			<a inert href="#!" style="cursor: default;"><img src="../../ScriptResources/ls_shapes/ls_icon.png" alt="Icon!" width="50%" class="colorize"></a>
+			<a inert href="#!" style="cursor: default;"><img src="../../docs/ls_shapes/assets/icon.png" alt="Icon!" width="50%" class="colorize"></a>
 		</td>
 		<td width="1920" valign="middle">
 			<div>
