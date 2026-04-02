@@ -102,7 +102,7 @@ Persistent shape palette plus helpers for better management of Moho® vectors in
 
 And that's all! The script should appear in *Tools* palette and/or under *Scripts* menu.
 
-> ⚠ **WARNING:** Please, make sure you have uninstalled every Lost Script on your system before removing any of these shared resources or they may start throwing errors or stop working. For uninstalling a script, just remove any file and folder matching its name and restart Moho® or Reload Tools And Brushes if necessary.
+> ⚠ **WARNING:** Please, make sure you have uninstalled every Lost Script on your system before removing any shared resource or they may start throwing errors or stop working. For uninstalling a script, just remove any file and folder matching its name and restart Moho® or Reload Tools And Brushes if necessary.
 
 <br>
 
