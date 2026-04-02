@@ -18,8 +18,9 @@ Weight: -1
 <table width="100%" border="0">
 	<tr>
 		<th align="left" valign="middle" width="72">
-			<picture title="Icon">
-				<source media="(prefers-color-scheme: dark)" srcset="assets/icon_dark.png"><img src="assets/icon.png" width="96" class="colorize">
+			<picture>
+				<source media="(prefers-color-scheme: dark)" srcset="assets/icon_dark.png">
+				<img src="assets/icon.png" width="96" alt="Icon" class="colorize">
 			</picture>
 		</th>
 		<th align="right" valign="middle" width="1920" nowrap>
