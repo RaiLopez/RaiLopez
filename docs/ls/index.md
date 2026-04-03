@@ -15,8 +15,9 @@ LastMod: 2024-02-09T00:54:00
 Weight: -1
 ---
 
+<!-- HEADER_START -->
 <!-- HEADER_END -->
-<!--
+
 <table width="100%" border="0">
 	<tr>
 		<th align="left" valign="middle" width="72">
@@ -32,7 +33,6 @@ Weight: -1
 		</th>
 	</tr>
 </table>
- -->
 
 <!-- Pure Markdown style head...
 | ![Icon](icon.png "Icon") | [![h-1i]][h-1a] [![h-2i]][h-2a] [![h-3i]][h-3a] |

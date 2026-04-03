@@ -1,3 +1,6 @@
+<!-- HEADER_START -->
+<!-- HEADER_END -->
+
 <!-- mIxEd style head (quite simple with modes and full width in GitHub) [![h-icon]](#!) -->
 <table id="top" width="100%" border="0"><tr><td align="left" valign="middle" width="96">
 <picture>
