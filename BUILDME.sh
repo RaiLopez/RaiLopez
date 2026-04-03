@@ -302,7 +302,30 @@ else
 	} >> "$OUTPUT_FILE"
 fi
 
-# 4d. Final Cleanup
+# 4d. HEADER AUTOMATION (Dynamic Header injection)
+# Supongamos que estamos procesando el index.md del pack ${id}
+H_START='---' # Fin del YAML
+H_END='<!-- HEADER_END -->'
+
+# Shields dinámicos (puedes ajustar los colores a tu branding)
+S_MOHO="https://img.shields.io/badge/For-Moho_Pro_${tar// /_}+-orange"
+S_VER="https://img.shields.io/github/v/release/${FORGE[USER]}/${id}?logo=github&color=blue"
+S_DL="https://img.shields.io/github/downloads/${FORGE[USER]}/${id}/total?color=yellow&label=downloads"
+
+# Construcción de la tabla Header (reutilizando PICTURE_TAG generado antes)
+HEADER_TABLE="<table width='100%' border='0'><tr><td align='left' valign='middle' width='96'>\n${PICTURE_TAG}\n</td><td align='right' valign='middle' width='1920' nowrap>\n\n<a href='https://moho.lostmarble.com/' title='Go to Moho website'><img src='${S_MOHO}' alt='Moho version'></a>\n<a href='${URL_BASE}/${id}/releases/latest' title='Go to download page'><img src='${S_VER}' alt='Version'></a>\n<img src='${S_DL}' alt='Downloads'>\n</td></tr></table>\n"
+
+# Inyección: Borra desde el segundo '---' hasta 'HEADER_END' y mete la tabla
+# (Esto requiere que tus archivos tengan la marca <!-- HEADER_END -->)
+if grep -q "$H_END" "$TARGET_FILE"; then
+	# Sed mágico: borra desde la línea después del YAML (2da ocurrencia de ---) hasta el marcador
+	sed -i "1,/^---$/! { /./,$ { /^---$/! { \|$H_END|!d } } }" "$TARGET_FILE"
+	# Insertar el Header justo antes del marcador
+	sed -i "\|$H_END|i $HEADER_TABLE" "$TARGET_FILE"
+	echo "--- ✅ Header updated for ${id} ---"
+fi
+
+# 4e. Final Cleanup
 rm -f "$TEMP_TABLE" "$CATALOG_DATA"
 
 # 5. ENDING! RESTART/SHELL/EXIT?
