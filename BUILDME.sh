@@ -1,11 +1,12 @@
 #!/bin/bash
 set -euo pipefail; trap 'debugger $LINENO "$BASH_COMMAND"' ERR # Debug Mode (Comment/Uncomment as needed)
+#export PS4='+ ${BASH_SOURCE}:${LINENO}: ${FUNCNAME[0]:+${FUNCNAME[0]}(): }' # Uncomment for detailed/alternative debugging with 'bash -x ./BUILDME.sh'
 
 # ⚙ CONFIGURATION
-declare -Ar INFO=( [NAME]="Lost Builder" [VERSION]="1.6.3" [CREATOR]="Rai López" [DESC]="Lost Project's Development Helper" )
+declare -Ar INFO=( [NAME]="Lost Builder" [VERSION]="1.7.0" [CREATOR]="Rai López" [DESC]="Lost Project's Development Helper" )
 declare -ar INCLUDE=( "Embed" "Menu" "Modules" "ScriptResources" "Smart" "Tool" "Utility" "LICENSE" ) # Note: Make sure the element doesn't remain orphaned in Core if you remove it from here!
 declare -ar SYNC=( "Modules" "Tool" "Utility" "ScriptResources" "Menu" "Embed" "Smart" ) # Pack folders for syncing...
-declare -Ar VARS=( [DEP]="ScriptDep" [VER]="ScriptVersion" [BLD]="ScriptBuild" [DSC]="ScriptDesc" [TAR]="ScriptTarget" ) # Script header variables (if "ScriptDep" is present in a .lua file, it's considered a pack!)
+declare -Ar VARS=( [DEP]="ScriptDep" [VER]="ScriptVersion" [BLD]="ScriptBuild" [STG]="ScriptStage" [DSC]="ScriptDesc" [TAR]="ScriptTarget" ) # Script header variables (if "ScriptDep" is present in a .lua file, it's considered a pack!)
 declare -Ar VAREXS=( [S]='s/.*=[[:space:]]*["'\'']\([^"'\'']*\)["'\''].*/\1/p' [A]='s/[^=]*=[[:space:]]*//; s/[^"'\'']*["'\'']\([^"'\'']*\)["'\'']/\1 /g' ) # Script header variable extractors
 declare -Ar FORGE=( [BASE]="github.com" [BRAW]="raw.githubusercontent.com" [USER]="RaiLopez" [PREF]="git@github-railopez" ) # URL, contentUrl, username, remotePrefix (SSH Alias), [MONO]="custom-repo" (optional, overrides USER)
 declare -r  CORE="ls"
@@ -14,7 +15,7 @@ declare -r  STRIP_YAML=true
 declare -r  DOCSDIR="./docs" # Monorepo's bunker
 declare -r  DISTDIR="_dist" # Specifying a directory implies creating ZIPs at ./docs/id/$DISTDIR (assuming zip.exe & bzip2.dll exist in %ProgramFiles%\Git\usr\bin)
 declare -ar ZIPIGNORE=( "README.md" "LICENSE" "docs" "docs/*" "*/docs/*" "*.zip" )
-declare -ar CATALOG_EXCLUDE=("ALPHA" "BETA" "PRIVATE") # TODO
+declare -ar CATALOG_EXCLUDE=("DRAFT" "ALPHA" "PRIVATE" "LEGACY") # TODO
 declare --  CATALOG_DATA=$(mktemp)
 declare --  PUBLISH=false # Requires the script folder has a repo and 'origin' remote
 declare -A  REPORT=( [DUR]=0 [TOT]=0 [LOC]=0 [PUB]=0 [ISS]=0)
@@ -61,10 +62,14 @@ done
 echo -e "--- ✨ Distributing From Cleaned Mirror: $CORE_DEST"
 PACKS_TEMP=$(find "$CORE_DEST" -type f -name "*.lua" -exec grep -l "${VARS[DEP]}" {} + | xargs -I {} basename {} .lua | grep -v "^${CORE}$" | sort -u) # Generate the "Sacred ID List" looking for ScriptDep Key in *.lua
 PACKS="$PACKS_TEMP $CORE" # The final list (first the packs, and lastly, the Core)
+MONOREPO="${FORGE[MONO]:-${FORGE[USER]}}" # CUSTOM or USER (Same name as user by default)
 MONO_MSG=$(git log -1 --pretty=%B | tr -d '\r' | head -n 1)
 MONO_HASH=$(git rev-parse --short HEAD)
 
 for script_id in $PACKS; do
+	v_name="" v_ver="0.0.0" v_tar="Any" v_stg="STABLE" v_dsc=""
+	URL_BASE="${URL_BASE:-}" # Asegura que exista aunque esté vacía
+
 	# --- PATH CONFIGURATION & MOVEMENT
 	if [[ "$script_id" == "$CORE" ]]; then
 		TARGET_DIR="$CORE_DEST"
@@ -165,12 +170,11 @@ for script_id in $PACKS; do
 		if [ "$HAS_REMOTE" = true ] || [[ "$script_id" == "$CORE" ]]; then
 			# B1. COLLECTION (Whenever there is a remote, publishing or not)
 			v_name=$(echo "$script_id" | sed 's/ls_//g; s/_/ /g' | awk '{for(i=1;i<=NF;i++)sub(/./,toupper(substr($i,1,1)),$i)}1')
-			v_ver=$(echo "$header" | grep "${VARS[VER]}" | sed -n "${VAREXS[S]}") || true
-			v_bld=$(echo "$header" | grep "${VARS[BLD]}" | sed -n "${VAREXS[S]}") || true
-			v_dsc=$(echo "$header" | grep "${VARS[DSC]}" | sed -n "${VAREXS[S]}") || true
-			v_tar=$(echo "$header" | grep "${VARS[TAR]}" | sed -n "${VAREXS[S]}") || true
-			[[ -z "$v_dsc" ]] && v_dsc="Lost Script $v_name for Moho®."
-			[[ -z "$v_tar" ]] && v_tar="N/D"
+			v_ver=$(echo "$header" | grep "${VARS[VER]}" | sed -n "${VAREXS[S]}") || :
+			v_bld=$(echo "$header" | grep "${VARS[BLD]}" | sed -n "${VAREXS[S]}") || :
+			v_stg=$(echo "$header" | grep "${VARS[STG]}" | sed -n "${VAREXS[S]}") || :
+			v_tar=$(echo "$header" | grep "${VARS[TAR]}" | sed -n "${VAREXS[S]}") || :
+			v_dsc=$(echo "$header" | grep "${VARS[DSC]}" | sed -n "${VAREXS[S]}") || :; [[ -z "$v_dsc" ]] && v_dsc="Lost Script $v_name for Moho®."
 			if [ "$HAS_REMOTE" = true ]; then
 				git tag 2>/dev/null | grep -Eq '^v?[0-9]+\.[0-9]+\.[0-9]+' && \
 				zip_url="https://${FORGE[BASE]}/${FORGE[USER]}/$script_id/releases/latest/download/${script_id}.zip" || \
@@ -178,7 +182,7 @@ for script_id in $PACKS; do
 			else
 				zip_url="https://${FORGE[BASE]}/${FORGE[USER]}/${CORE}/releases/latest/download/${CORE}.zip"
 			fi
-			echo "$script_id|$v_name|$v_ver|$v_bld|$v_dsc|$v_tar|$zip_url" >> "$CATALOG_DATA" # Records are always written, whether it's DRY RUN or not
+			echo "$script_id|$v_name|$v_ver|$v_bld|$v_dsc|$v_tar|$zip_url|$v_stg" >> "$CATALOG_DATA" # Records are always written, whether it's DRY RUN or not
 
 			# B2. SYNC LOGIC (Only if PUBLISH is true and there is remote)
 			if [ "$PUBLISH" = true ] && [ "$HAS_REMOTE" = true ]; then
@@ -222,7 +226,34 @@ for script_id in $PACKS; do
 		((++REPORT[LOC]))
 	fi
 
-	# --- 🎁 2.7. SCRIPT ZIP GENERATION (Optional & Local)
+	# --- 🖼️ 2.7. HEADER INJECTION (Per-Pack basis)
+	H_START='<!-- HEADER_START -->'
+	H_END='<!-- HEADER_END -->'
+	TARGET_README="$TARGET_DIR/docs/README.md" # Note: 2.4 already renamed index to README
+
+	if [ -f "$TARGET_README" ] && grep -q "$H_START" "$TARGET_README" && grep -q "$H_END" "$TARGET_README"; then
+		# 🎨 Assets & Shields
+		DISPLAY_VER="$v_ver"; [[ "$v_stg" != "STABLE" ]] && DISPLAY_VER="${v_ver}-${v_stg}"
+		SAFE_TAR="${v_tar// /_}"
+		IMG_HDR="https://${FORGE[BRAW]}/${FORGE[USER]}/${MONOREPO}/refs/heads/main/docs/${script_id}/assets/icon.png"
+		S_MOHO="https://img.shields.io/badge/For-Moho_Pro_${SAFE_TAR}+-orange"
+		S_VER="https://img.shields.io/github/v/release/${FORGE[USER]}/${script_id}?logo=github&color=blue&label=version%20${DISPLAY_VER}"
+		S_DL="https://img.shields.io/github/downloads/${FORGE[USER]}/${script_id}/total?color=yellow&label=downloads"
+
+		# 🏗️ Build Table (Single line for SED safety)
+		HEADER_HTML="<table width='100%' border='0'><tr><td align='left' valign='middle' width='96'><img src='${IMG_HDR}' width='48' alt='Icon'></td><td align='right' valign='middle' nowrap><a href='https://moho.lostmarble.com/'><img src='${S_MOHO}' alt='Moho'></a> <a href='${URL_BASE}/${script_id}/releases/latest'><img src='${S_VER}' alt='Version'></a> <img src='${S_DL}' alt='Downloads'></td></tr></table>"
+
+		# 💉 Surgical Injection (Direct & clean)
+		sed -i "\|$H_START|,\|$H_END|{ \|$H_START|b; \|$H_END|b; d; }" "$TARGET_README" # 1. Delete content between marker
+		sed -i "\|$H_START|a $HEADER_HTML" "$TARGET_README" # 2. Append the HTML table right after the START marker
+		
+		# ✨ FINAL CLEANUP: Remove the marks from the final README, where they're no longer needed
+		sed -i "/<!-- HEADER_START -->/d; /<!-- HEADER_END -->/d" "$TARGET_README"
+		
+		echo "    ✅ Header injected & Cleaned: $script_id"
+	fi
+
+	# --- 🎁 2.8. SCRIPT ZIP GENERATION (Optional & Local)
 	zipper "$script_id" "$TARGET_DIR"
 	((++REPORT[TOT]))
 done
@@ -233,7 +264,6 @@ OUTPUT_FILE="./docs/README.md"
 TEMP_TABLE=$(mktemp)
 CAT_START='<!-- CATALOG_START -->'
 CAT_END='<!-- CATALOG_END -->'
-MONOREPO="${FORGE[MONO]:-${FORGE[USER]}}" # CUSTOM or USER (Same name as user by default)
 URL_BASE="https://${FORGE[BASE]}/${FORGE[USER]}"
 URL_RAW="https://${FORGE[BRAW]}/${FORGE[USER]}"
 URL_RAW_CORE="${URL_RAW}/${CORE}/main/ScriptResources/${CORE}"
@@ -251,15 +281,22 @@ if [ -s "$CATALOG_DATA" ]; then
 	LINE=$(grep "^${CORE}|" "$CATALOG_DATA") || true # Group the Core first and...
 	LINES=$(grep -v "^${CORE}|" "$CATALOG_DATA" | sort -t'|' -k2) || true # ...then the others ordered by name (column 2)
 
-	{ echo "$LINE"; echo "$LINES"; } | while IFS="|" read -r id name ver bld dsc tar url; do
+	{ echo "$LINE"; echo "$LINES"; } | while IFS="|" read -r id name ver bld dsc tar url stg; do
+		# --- 🕸 EXCLUSION FILTERS
 		[[ -z "$id" ]] && continue
-		PACK_LNK="${URL_BASE}/${id}/"
+
+		is_excluded=false
+		for skip in "${CATALOG_EXCLUDE[@]}"; do
+			[[ "$stg" == "$skip" ]] && is_excluded=true && break
+		done
+		[[ "$is_excluded" == true ]] && [[ "$id" != "$CORE" ]] && continue # If it is excluded and is NOT the CORE, skip to the next iteration
 
 		# --- 🔍 TRIPLE ICON/FALLBACK LOGIC (Hybrid structure)
+		PACK_LNK="${URL_BASE}/${id}/"
+		ASSETS_PATH="./docs/${id}/assets"
 		IMG_MAIN="${URL_RAW_MONO}/docs/assets/icon_unk.png"
 		IMG_DARK="${URL_RAW_MONO}/docs/assets/icon_unk_dark.png"
 		IMG_LIGHT="${URL_RAW_MONO}/docs/assets/icon_unk_light.png"
-		ASSETS_PATH="./docs/${id}/assets"
 
 		if [ -f "$ASSETS_PATH/icon.png" ]; then # We check for the presence of package-specific icons
 			IMG_MAIN="${URL_RAW_MONO}/docs/${id}/assets/icon.png" # The default icon will always be the original Moho icon
@@ -283,7 +320,8 @@ if [ -s "$CATALOG_DATA" ]; then
 			DISPLAY_NAME="[***LS&nbsp;<sup>Core</sup>***](${PACK_LNK} 'Go to \"$CORE\" repo...') "
 			DISPLAY_DESC="***<sup>Essential shared resources, utilities, and core modules required for the [Lost Scripts™](https://lost-scripts.github.io/ \"Go to Lost Scripts™ site...\") project to work with [MOHO](https://moho.lostmarble.com/ \"Go to Moho® homepage...\")<sup>&nbsp;Pro</sup> Animation Software.&emsp;</sup>***"
 		else
-			DISPLAY_NAME="[<sup>**$name**</sup>](${PACK_LNK} 'Go to \"$id\" repo...')<br><sub><sup title='Build: $bld'>v$ver</sup></sub>"
+			STAGE_LABEL=""; [[ "$stg" != "STABLE" ]] && STAGE_LABEL=" <kbd><font color='red'>$stg</font></kbd>" # 🎨 Inject the Stage here if it's not STABLE
+			DISPLAY_NAME="[<sup>**$name**</sup>](${PACK_LNK} 'Go to \"$id\" repo...')${STAGE_LABEL}<br><sub><sup title='Build: $bld'>v$ver</sup></sub>"
 			DISPLAY_DESC="<sup>$dsc</sup><br><sub><sup>𝓲 For Moho $tar</sup></sub>"
 		fi
 		echo "| [$PICTURE_TAG](${PACK_LNK} 'Go to \"$id\" repo...') | $DISPLAY_NAME | $DISPLAY_DESC | [ &nbsp;⏬&nbsp; ]($url 'Download: ${id}.zip') |" >> "$TEMP_TABLE"
