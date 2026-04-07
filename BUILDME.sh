@@ -15,7 +15,7 @@ declare -r  STRIP_YAML=true
 declare -r  DOCSDIR="./docs" # Monorepo's bunker
 declare -r  DISTDIR="_dist" # Specifying a directory implies creating ZIPs at ./docs/id/$DISTDIR (assuming zip.exe & bzip2.dll exist in %ProgramFiles%\Git\usr\bin)
 declare -ar ZIPIGNORE=( "README.md" "LICENSE" "docs" "docs/*" "*/docs/*" "*.zip" )
-declare -ar CATALOG_EXCLUDE=("DRAFT" "ALPHA" "PRIVATE" "LEGACY") # TODO
+declare -ar CATALOG_EXCLUDE=("DRAFT" "ALPHA" "PRIVATE" "LEGACY")
 declare --  CATALOG_DATA=$(mktemp)
 declare --  PUBLISH=false # Requires the script folder has a repo and 'origin' remote
 declare -A  REPORT=( [DUR]=0 [TOT]=0 [LOC]=0 [PUB]=0 [ISS]=0)
@@ -177,8 +177,7 @@ for script_id in $PACKS; do
 			v_dsc=$(echo "$header" | grep "${VARS[DSC]}" | sed -n "${VAREXS[S]}") || :; [[ -z "$v_dsc" ]] && v_dsc="Lost Script $v_name for Moho®."
 			if [ "$HAS_REMOTE" = true ]; then
 				git tag 2>/dev/null | grep -Eq '^v?[0-9]+\.[0-9]+\.[0-9]+' && \
-				zip_url="https://${FORGE[BASE]}/${FORGE[USER]}/$script_id/releases/latest/download/${script_id}.zip" || \
-				zip_url="https://${FORGE[BASE]}/${FORGE[USER]}/$script_id/archive/refs/heads/main.zip"
+				zip_url="https://${FORGE[BASE]}/${FORGE[USER]}/$script_id/releases/latest/download/${script_id}.zip" || zip_url="https://${FORGE[BASE]}/${FORGE[USER]}/$script_id/archive/refs/heads/main.zip"
 			else
 				zip_url="https://${FORGE[BASE]}/${FORGE[USER]}/${CORE}/releases/latest/download/${CORE}.zip"
 			fi
@@ -321,7 +320,7 @@ if [ -s "$CATALOG_DATA" ]; then
 			DISPLAY_DESC="***<sup>Essential shared resources, utilities, and core modules required for the [Lost Scripts™](https://lost-scripts.github.io/ \"Go to Lost Scripts™ site...\") project to work with [MOHO](https://moho.lostmarble.com/ \"Go to Moho® homepage...\")<sup>&nbsp;Pro</sup> Animation Software.&emsp;</sup>***"
 		else
 			STAGE_LABEL=""; [[ "$stg" != "STABLE" ]] && STAGE_LABEL=" <kbd><font color='red'>$stg</font></kbd>" # 🎨 Inject the Stage here if it's not STABLE
-			DISPLAY_NAME="[<sup>**$name**</sup>](${PACK_LNK} 'Go to \"$id\" repo...')${STAGE_LABEL}<br><sub><sup title='Build: $bld'>v$ver</sup></sub>"
+			DISPLAY_NAME="[<sup>**$name**</sup>](${PACK_LNK} 'Go to \"$id\" repo...')<br><sub><sup title='Build: $bld'>v$ver</sup>${STAGE_LABEL}</sub>"
 			DISPLAY_DESC="<sup>$dsc</sup><br><sub><sup>𝓲 For Moho $tar</sup></sub>"
 		fi
 		echo "| [$PICTURE_TAG](${PACK_LNK} 'Go to \"$id\" repo...') | $DISPLAY_NAME | $DISPLAY_DESC | [ &nbsp;⏬&nbsp; ]($url 'Download: ${id}.zip') |" >> "$TEMP_TABLE"
