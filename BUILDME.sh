@@ -320,7 +320,7 @@ if [ -s "$CATALOG_DATA" ]; then
 			DISPLAY_DESC="***<sup>Essential shared resources, utilities, and core modules required for the [Lost Scripts™](https://lost-scripts.github.io/ \"Go to Lost Scripts™ site...\") project to work with [MOHO](https://moho.lostmarble.com/ \"Go to Moho® homepage...\")<sup>&nbsp;Pro</sup> Animation Software.&emsp;</sup>***"
 		else
 			DISPLAY_NAME="[**$name**](${PACK_LNK} 'Go to \"$id\" repo...')"
-			STAGE_LABEL=""; [[ "$stg" != "STABLE" ]] && STAGE_LABEL="<kbd><font color='red'>$stg</font></kbd>" # 🎨 Inject the Stage here if it's not STABLE
+			STAGE_LABEL=""; [[ "$stg" != "STABLE" ]] && STAGE_LABEL="**$stg**" # 🎨 Inject the Stage here if it's not STABLE
 			DISPLAY_DESC="<sup>$dsc</sup><br><sub>𝓲 </sub><em><sub title='Build: $bld'>v$ver</sub> ${STAGE_LABEL}<sub> For Moho $tar</sub></em>"
 		fi
 		echo "| [$PICTURE_TAG](${PACK_LNK} 'Go to \"$id\" repo...') | $DISPLAY_NAME | $DISPLAY_DESC | [ &nbsp;⏬&nbsp; ]($url 'Download: ${id}.zip') |" >> "$TEMP_TABLE"
