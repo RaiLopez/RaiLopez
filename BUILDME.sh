@@ -320,8 +320,8 @@ if [ -s "$CATALOG_DATA" ]; then
 			DISPLAY_DESC="***<sup>Essential shared resources, utilities, and core modules required for the [Lost Scripts™](https://lost-scripts.github.io/ \"Go to Lost Scripts™ site...\") project to work with [MOHO](https://moho.lostmarble.com/ \"Go to Moho® homepage...\")<sup>&nbsp;Pro</sup> Animation Software.&emsp;</sup>***"
 		else
 			STAGE_LABEL=""; [[ "$stg" != "STABLE" ]] && STAGE_LABEL="<kbd><font color='red'><sub><sup>$stg</sup></sub></font></kbd>" # 🎨 Inject the Stage here if it's not STABLE
-			DISPLAY_NAME="[<sup>**$name**</sup>](${PACK_LNK} 'Go to \"$id\" repo...')<br><sub><sup title='Build: $bld'>v$ver</sup></sub>&nbsp;${STAGE_LABEL}"
-			DISPLAY_DESC="<sup>$dsc</sup><br><sub><sup>𝓲 For Moho $tar</sup></sub>"
+			DISPLAY_NAME="[<sup>**$name**</sup>](${PACK_LNK} 'Go to \"$id\" repo...')"
+			DISPLAY_DESC="<sup>$dsc</sup><br><sub><sup title='Build: $bld'>𝓲&nbsp;v$ver</sup></sub>&nbsp;${STAGE_LABEL}<sub><sup> For Moho $tar</sup></sub>"
 		fi
 		echo "| [$PICTURE_TAG](${PACK_LNK} 'Go to \"$id\" repo...') | $DISPLAY_NAME | $DISPLAY_DESC | [ &nbsp;⏬&nbsp; ]($url 'Download: ${id}.zip') |" >> "$TEMP_TABLE"
 	done
