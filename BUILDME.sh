@@ -1,4 +1,5 @@
 #!/bin/bash
+set +H # Disables '!' history expansion for preventing "event not found" errors when using ! marks in strings or sed (alternative: "'!'")
 set -euo pipefail; trap 'debugger $LINENO "$BASH_COMMAND"' ERR # Debug Mode (Comment/Uncomment as needed)
 #export PS4='+ ${BASH_SOURCE}:${LINENO}: ${FUNCNAME[0]:+${FUNCNAME[0]}(): }' # Uncomment for detailed/alternative debugging with 'bash -x ./BUILDME.sh'
 
@@ -65,10 +66,13 @@ PACKS="$PACKS_TEMP $CORE" # The final list (first the packs, and lastly, the Cor
 MONOREPO="${FORGE[MONO]:-${FORGE[USER]}}" # CUSTOM or USER (Same name as user by default)
 MONO_MSG=$(git log -1 --pretty=%B | tr -d '\r' | head -n 1)
 MONO_HASH=$(git rev-parse --short HEAD)
+URL_BASE="https://${FORGE[BASE]}/${FORGE[USER]}"
+URL_RAW="https://${FORGE[BRAW]}/${FORGE[USER]}"
+URL_RAW_CORE="${URL_RAW}/${CORE}/main/ScriptResources/${CORE}"
+URL_RAW_MONO="https://${FORGE[BRAW]}/${FORGE[USER]}/${MONOREPO}/refs/heads/main"
 
 for script_id in $PACKS; do
-	v_name="" v_ver="0.0.0" v_tar="Any" v_stg="STABLE" v_dsc=""
-	URL_BASE="${URL_BASE:-}" # Asegura que exista aunque esté vacía
+	v_name="" v_ver="0.0.0" v_tar="" v_stg="STABLE" v_dsc=""
 
 	# --- PATH CONFIGURATION & MOVEMENT
 	if [[ "$script_id" == "$CORE" ]]; then
@@ -144,6 +148,37 @@ for script_id in $PACKS; do
 	done
 	#echo -e "📦 Finalizing + Cleaning Package: $TARGET_DIR"
 	find "$TARGET_DIR" -type d -empty -not -path "*/.git*" -delete 2>/dev/null || true
+
+	# --- 🖼️ 2.7. HEADER INJECTION (Per-Pack basis)
+	H_START='<!-- HEADER_START -->'
+	H_END='<!-- HEADER_END -->'
+	TARGET_README="$TARGET_DIR/docs/README.md" # Note: 2.4 already renamed index to README
+
+	if [ -f "$TARGET_README" ] && grep -q "$H_START" "$TARGET_README" && grep -q "$H_END" "$TARGET_README"; then
+		# 🎨 Assets & Shields
+		DISPLAY_VER="$v_ver"; [[ "$v_stg" != "STABLE" ]] && DISPLAY_VER="${v_ver}-${v_stg}"
+		SAFE_TAR="${v_tar// /_}"
+		IMG_HDR="https://${FORGE[BRAW]}/${FORGE[USER]}/${MONOREPO}/refs/heads/main/docs/${script_id}/assets/icon.png"
+		S_MOHO="https://img.shields.io/badge/For-Moho_${SAFE_TAR}+-orange"
+		S_VER="https://img.shields.io/github/v/release/${FORGE[USER]}/${script_id}?logo=github&color=blue&label=version%20${DISPLAY_VER}"
+		S_DL="https://img.shields.io/github/downloads/${FORGE[USER]}/${script_id}/total?color=yellow&label=downloads"
+
+		# 🏗️ Build Table (Single line for SED safety)
+		HEADER_HTML="<table width='100%' border='0'><tr><td align='left' valign='middle' width='96'><img src='${IMG_HDR}' width='48' alt='Icon'></td><td align='right' valign='middle' nowrap><a href='https://moho.lostmarble.com/'><img src='${S_MOHO}' alt='Moho'></a> <a href='${URL_BASE}/${script_id}/releases/latest'><img src='${S_VER}' alt='Version'></a> <img src='${S_DL}' alt='Downloads'></td></tr></table>"
+
+		# 💉 Surgical Injection (Direct & clean)
+		sed -i "\|$H_START|,\|$H_END|{ \|$H_START|b; \|$H_END|b; d; }" "$TARGET_README" # 1. Delete content between marker
+		sed -i "\|$H_START|a $HEADER_HTML" "$TARGET_README" # 2. Append the HTML table right after the START marker
+		
+		# ✨ FINAL CLEANUP: Remove the marks from the final README, where they're no longer needed
+		sed -i "/<!-- HEADER_START -->/d; /<!-- HEADER_END -->/d" "$TARGET_README"
+		
+		echo "    ✅ Header injected & Cleaned: $script_id"
+	fi
+
+	# --- 🎁 2.8. SCRIPT ZIP GENERATION (Optional & Local)
+	zipper "$script_id" "$TARGET_DIR"
+	((++REPORT[TOT]))
 
 	# --- 🚀 2.6. GIT SYNC & CATALOG DATA
 	if [ -d "$TARGET_DIR/.git" ] || [[ "$script_id" == "$CORE" ]]; then
@@ -224,37 +259,6 @@ for script_id in $PACKS; do
 		fi
 		((++REPORT[LOC]))
 	fi
-
-	# --- 🖼️ 2.7. HEADER INJECTION (Per-Pack basis)
-	H_START='<!-- HEADER_START -->'
-	H_END='<!-- HEADER_END -->'
-	TARGET_README="$TARGET_DIR/docs/README.md" # Note: 2.4 already renamed index to README
-
-	if [ -f "$TARGET_README" ] && grep -q "$H_START" "$TARGET_README" && grep -q "$H_END" "$TARGET_README"; then
-		# 🎨 Assets & Shields
-		DISPLAY_VER="$v_ver"; [[ "$v_stg" != "STABLE" ]] && DISPLAY_VER="${v_ver}-${v_stg}"
-		SAFE_TAR="${v_tar// /_}"
-		IMG_HDR="https://${FORGE[BRAW]}/${FORGE[USER]}/${MONOREPO}/refs/heads/main/docs/${script_id}/assets/icon.png"
-		S_MOHO="https://img.shields.io/badge/For-Moho_Pro_${SAFE_TAR}+-orange"
-		S_VER="https://img.shields.io/github/v/release/${FORGE[USER]}/${script_id}?logo=github&color=blue&label=version%20${DISPLAY_VER}"
-		S_DL="https://img.shields.io/github/downloads/${FORGE[USER]}/${script_id}/total?color=yellow&label=downloads"
-
-		# 🏗️ Build Table (Single line for SED safety)
-		HEADER_HTML="<table width='100%' border='0'><tr><td align='left' valign='middle' width='96'><img src='${IMG_HDR}' width='48' alt='Icon'></td><td align='right' valign='middle' nowrap><a href='https://moho.lostmarble.com/'><img src='${S_MOHO}' alt='Moho'></a> <a href='${URL_BASE}/${script_id}/releases/latest'><img src='${S_VER}' alt='Version'></a> <img src='${S_DL}' alt='Downloads'></td></tr></table>"
-
-		# 💉 Surgical Injection (Direct & clean)
-		sed -i "\|$H_START|,\|$H_END|{ \|$H_START|b; \|$H_END|b; d; }" "$TARGET_README" # 1. Delete content between marker
-		sed -i "\|$H_START|a $HEADER_HTML" "$TARGET_README" # 2. Append the HTML table right after the START marker
-		
-		# ✨ FINAL CLEANUP: Remove the marks from the final README, where they're no longer needed
-		sed -i "/<!-- HEADER_START -->/d; /<!-- HEADER_END -->/d" "$TARGET_README"
-		
-		echo "    ✅ Header injected & Cleaned: $script_id"
-	fi
-
-	# --- 🎁 2.8. SCRIPT ZIP GENERATION (Optional & Local)
-	zipper "$script_id" "$TARGET_DIR"
-	((++REPORT[TOT]))
 done
 
 # 4. GENERATING CATALOG
@@ -263,10 +267,6 @@ OUTPUT_FILE="./docs/README.md"
 TEMP_TABLE=$(mktemp)
 CAT_START='<!-- CATALOG_START -->'
 CAT_END='<!-- CATALOG_END -->'
-URL_BASE="https://${FORGE[BASE]}/${FORGE[USER]}"
-URL_RAW="https://${FORGE[BRAW]}/${FORGE[USER]}"
-URL_RAW_CORE="${URL_RAW}/${CORE}/main/ScriptResources/${CORE}"
-URL_RAW_MONO="https://${FORGE[BRAW]}/${FORGE[USER]}/${MONOREPO}/refs/heads/main"
 
 # 4a. Table Header (Remote icons so they're always visible)
 cat <<EOF > "$TEMP_TABLE"
@@ -320,7 +320,7 @@ if [ -s "$CATALOG_DATA" ]; then
 			DISPLAY_DESC="***<sup>Essential shared resources, utilities, and core modules required for the [Lost Scripts™](https://lost-scripts.github.io/ \"Go to Lost Scripts™ site...\") project to work with [MOHO](https://moho.lostmarble.com/ \"Go to Moho® homepage...\")<sup>&nbsp;Pro</sup> Animation Software.&emsp;</sup>***"
 		else
 			DISPLAY_NAME="[**$name**](${PACK_LNK} 'Go to \"$id\" repo...')"
-			STAGE_LABEL=""; [[ "$stg" != "STABLE" ]] && STAGE_LABEL="**<sub>$stg</sub>**" # 🎨 Inject the Stage here if it's not STABLE
+			STAGE_LABEL=""; [[ "$stg" != "STABLE" ]] && STAGE_LABEL="**<sub><ins>$stg</ins></sub>**" # 🎨 Inject the Stage here if it's not STABLE
 			DISPLAY_DESC="<sup>$dsc</sup><br><sub>𝓲 </sub><em><sub title='Build: $bld'>v$ver</sub> ${STAGE_LABEL}<sub> For Moho $tar</sub></em>"
 		fi
 		echo "| [$PICTURE_TAG](${PACK_LNK} 'Go to \"$id\" repo...') | $DISPLAY_NAME | $DISPLAY_DESC | [ &nbsp;⏬&nbsp; ]($url 'Download: ${id}.zip') |" >> "$TEMP_TABLE"
@@ -344,7 +344,7 @@ fi
 rm -f "$TEMP_TABLE" "$CATALOG_DATA"
 
 # 5. ENDING! RESTART/SHELL/EXIT?
-echo -e "--- 🏁 ${T_B}DONE"'!'"${T_N} (In: $(printf '%01d:%02d' $((SECONDS/60)) $((SECONDS%60))) | Total: ${REPORT[TOT]} | Local: ${REPORT[LOC]} | Public: ${REPORT[PUB]} | $([[ ${REPORT[ISS]} -gt 0 ]] && echo -ne "${T_R}" || echo -ne "${T_N}")Issues: ${REPORT[ISS]}${T_N})"
+echo -e "--- 🏁 ${T_B}DONE!${T_N} (In: $(printf '%01d:%02d' $((SECONDS/60)) $((SECONDS%60))) | Total: ${REPORT[TOT]} | Local: ${REPORT[LOC]} | Public: ${REPORT[PUB]} | $([[ ${REPORT[ISS]} -gt 0 ]] && echo -ne "${T_R}" || echo -ne "${T_N}")Issues: ${REPORT[ISS]}${T_N})"
 echo -ne "--- ？ ${T_S}R${T_N}estart? (${T_S}Y${T_N}es/${T_S}S${T_N}hell/${T_S}Any${T_N} to exit): "; read -n 1 action; echo ""
 if [[ "$action" =~ ^[yYrR]$ ]]; then
 	echo -e "--- 🔁 Restarting... \n"; sleep 0.5; exec bash "$0"
