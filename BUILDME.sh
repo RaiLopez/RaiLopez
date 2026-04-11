@@ -227,7 +227,7 @@ for script_id in $PACKS; do
 			v_stg=$(echo "$header" | grep "${VARS[STG]}" | sed -n "${VAREXS[S]}") || v_stg="STABLE"
 			v_bld=$(echo "$header" | grep "${VARS[BLD]}" | sed -n "${VAREXS[S]}") || v_bld="N/D"
 			v_tar=$(echo "$header" | grep "${VARS[TAR]}" | sed -n "${VAREXS[S]}") || v_tar=""
-			v_dsc=$(echo "$header" | grep "${VARS[DSC]}" | sed -n "${VAREXS[S]}") 
+			v_dsc=$(echo "$header" | grep "${VARS[DSC]}" | sed -n 's/.*=[[:space:]]*\(["'\'']\)\(.*\)\1.*/\2/p') 
 			if [[ -z "$v_dsc" ]]; then # Description fallback
 				if [[ "$script_id" == "$CORE" ]]; then
 					v_dsc="Essential shared resources and core modules for Lost Scripts™."
