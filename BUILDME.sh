@@ -26,7 +26,8 @@ readonly ICON_DL_B64="PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZX
 
 # 🛠️ HELPER FUNCTIONS
 debugger(){ # Debug Mode helper for catching errors before closing
-	echo -ne "--- ❌ ${T_R}ERROR @ line $1${T_N}: $2 ${T_D}(Press any key to exit) ${T_N}" && read -n 1 -s && exit
+	local ec=$?; set +e # Capture the error code before it's lost; Prevent debugger from crashing if something goes wrong during printing
+	echo -ne "--- ❌ ${T_R}ERROR @ line $1${T_N}: $2 (EC: $ec) ${T_D}(Press any key to exit) ${T_N}"; read -n 1 -s && exit $ec
 } # USAGE: unnatended (to be used by trap)
 
 zipper() { # .ZIP packaging function: id ($1), target_path ($2)
