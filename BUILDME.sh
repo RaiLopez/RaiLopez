@@ -227,12 +227,12 @@ for script_id in $PACKS; do
 			v_stg=$(echo "$header" | grep "${VARS[STG]}" | sed -n "${VAREXS[S]}") || v_stg="STABLE"
 			v_bld=$(echo "$header" | grep "${VARS[BLD]}" | sed -n "${VAREXS[S]}") || v_bld="N/D"
 			v_tar=$(echo "$header" | grep "${VARS[TAR]}" | sed -n "${VAREXS[S]}") || v_tar=""
-			v_dsc=$(echo "$header" | grep "${VARS[DSC]}" | sed -n "${VAREXS[S]}") 
+			v_dsc=$(echo "$header" | grep "${VARS[DSC]}" | sed -n "${VAREXS[S]}") || v_dsc=""
 			if [[ -z "$v_dsc" ]]; then # Description fallback
 				if [[ "$script_id" == "$CORE" ]]; then
-					v_dsc="Essential shared resources and core modules for Lost Scripts™."
+					v_dsc="Essential shared resources and core modules required for the Lost Scripts™ project to work with [MOHO](https://moho.lostmarble.com/ 'Go to Moho&reg; homepage...')® Animation&nbsp;Software.&emsp;"
 				else
-					v_dsc="Lost Script *$v_name* for Moho® Animation Software."
+					v_dsc="Lost Script *$v_name* for [MOHO](https://moho.lostmarble.com/ 'Go to Moho&reg; homepage...')® Animation Software."
 				fi
 			fi
 			if [ "$HAS_REMOTE" = true ]; then
