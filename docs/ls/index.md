@@ -5,11 +5,8 @@ Params:
   Author: Rai López
   Version: 0.0.1
   Build: 20250114-0005
-  Flags:
-    - UPD! # NEW! UPD! WIP! TODO BETA ALPHA
-Tags:
-  - utilities
-  - resources
+  Flags: [UPD!] # NEW! UPD! WIP! TODO BETA ALPHA
+Tags: [utilities, resources]
 Date: 2023-10-17T4:24:43
 LastMod: 2024-02-09T00:54:00
 Weight: -1

@@ -1,7 +1,7 @@
 ---
 Title: LS Link Points
 Description: Lost Scripts project's common/shared resources.
-Tags: [utilities, resources]
+Tags: [vectors, constraints]
 Subcategory: Index
 Date: 2023-10-17 4:24:43Z
 Modified: 2024-02-09 00:54:00Z

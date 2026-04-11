@@ -4,7 +4,7 @@ set -euo pipefail; trap 'debugger $LINENO "$BASH_COMMAND"' ERR # Debug Mode (Com
 #export PS4='+ ${BASH_SOURCE}:${LINENO}: ${FUNCNAME[0]:+${FUNCNAME[0]}(): }' # Uncomment for detailed/alternative debugging with 'bash -x ./BUILDME.sh'
 
 # ⚙ CONFIGURATION
-declare -Ar INFO=( [NAME]="Lost Builder" [VERSION]="1.7.0" [CREATOR]="Rai López" [DESC]="Lost Project's Development Helper" )
+declare -Ar INFO=( [NAME]="Lost Builder" [VERSION]="1.7.1" [CREATOR]="Rai López" [DESC]="Lost Project's Development Helper" )
 declare -ar INCLUDE=( "Embed" "Menu" "Modules" "ScriptResources" "Smart" "Tool" "Utility" "LICENSE" ) # Note: Make sure the element doesn't remain orphaned in Core if you remove it from here!
 declare -ar SYNC=( "Modules" "Tool" "Utility" "ScriptResources" "Menu" "Embed" "Smart" ) # Pack folders for syncing...
 declare -Ar VARS=( [DEP]="ScriptDep" [VER]="ScriptVersion" [BLD]="ScriptBuild" [STG]="ScriptStage" [DSC]="ScriptDesc" [TAR]="ScriptTarget" ) # Script header variables (if "ScriptDep" is present in a .lua file, it's considered a pack!)
@@ -72,7 +72,7 @@ URL_RAW_CORE="${URL_RAW}/${CORE}/main/ScriptResources/${CORE}"
 URL_RAW_MONO="https://${FORGE[BRAW]}/${FORGE[USER]}/${MONOREPO}/refs/heads/main"
 
 for script_id in $PACKS; do
-	v_name="" v_ver="0.0.0" v_tar="" v_stg="STABLE" v_dsc=""
+	v_name="" v_ver="?" v_tar="" v_stg="STABLE" v_dsc=""
 
 	# --- PATH CONFIGURATION & MOVEMENT
 	if [[ "$script_id" == "$CORE" ]]; then
@@ -97,26 +97,41 @@ for script_id in $PACKS; do
 		fi
 	fi
 
-	# --- 🔍 2.3 INJECT DEPENDENCIES (The "Smart Search" Logic)
-	while read -r main_file; do # We look for ALL namesake script files in TARGET_DIR
-		header=$(head -n 25 "$main_file" | tr -d '\r') # We check the header to see if it's the one that contains the info
-		echo "$header" | grep -q "${VARS[DEP]}" || continue # Guard clause: if ScriptDep variable not found, skip to next file...
-		
-		deps=$(echo "$header" | grep "${VARS[DEP]}" | sed -e "${VAREXS[A]}") # If we get here, we have found the "parent file" (the ID with info)
-		for dep in $deps; do
-			target_dep=$(echo "$dep" | tr -d '{}," ' | tr '\\' '/') # Complete removal of unwanted characters
-			if [[ -n "$target_dep" && "$target_dep" != "/" ]]; then # We verify that it is not an empty string or an orphaned bar
-				if [ -f "./$target_dep" ]; then
-					mkdir -p "$TARGET_DIR/$(dirname "$target_dep")"
-					cp "./$target_dep" "$TARGET_DIR/$target_dep"
-					echo "    ✅ Dependency injected: $target_dep"
-				else
-					echo -e "    ❎ ${T_R}Missing dependency:${T_N} ./$target_dep"; ((++REPORT[ISS])) # Just in case there in the path or a renamed a dependency
-				fi
+	# --- 🔍 2.3 INJECT DEPENDENCIES & METADATA (The "Smart Search" Logic)
+	header="" # Reset por seguridad
+	if [[ "$script_id" == "$CORE" ]]; then
+		# Para el CORE, forzamos la lectura del archivo maestro
+		MASTER_CORE="./Utility/ls_utilities.lua"
+		if [ -f "$MASTER_CORE" ]; then
+			header=$(head -n 35 "$MASTER_CORE" | tr -d '\r')
+			echo "    ℹ️ Core metadata sourced from: $MASTER_CORE"
+		fi
+	else
+		# Para los PACKS, mantenemos tu lógica de búsqueda original intacta
+		while read -r main_file; do # We look for ALL namesake script files in TARGET_DIR
+			temp_header=$(head -n 35 "$main_file" | tr -d '\r') # We check the header to see if it's the one that contains the info
+			# Buscamos ScriptDep o ScriptVersion para identificar el archivo principal
+			if echo "$temp_header" | grep -qE "${VARS[DEP]}|${VARS[VER]}"; then # Guard clause: if ScriptDep variable is found...
+				header="$temp_header"
+				
+				# Inyección de dependencias (tu lógica de siempre)
+				deps=$(echo "$header" | grep "${VARS[DEP]}" | sed -e "${VAREXS[A]}") # If we get here, we have found the "parent file" (the ID with info)
+				for dep in $deps; do
+					target_dep=$(echo "$dep" | tr -d '{}," ' | tr '\\' '/') # Complete removal of unwanted characters
+					if [[ -n "$target_dep" && "$target_dep" != "/" ]]; then # We verify that it is not an empty string or an orphaned bar
+						if [ -f "./$target_dep" ]; then
+							mkdir -p "$TARGET_DIR/$(dirname "$target_dep")"
+							cp "./$target_dep" "$TARGET_DIR/$target_dep"
+							echo "    ✅ Dependency injected: $target_dep"
+						else
+							echo -e "    ❎ ${T_R}Missing dependency:${T_N} ./$target_dep"; ((++REPORT[ISS])) # Just in case there in the path or a renamed a dependency
+						fi
+					fi
+				done
+				break # Ya encontramos el archivo principal, salimos del while
 			fi
-		done
-		break 
-	done < <(find "$TARGET_DIR" -name "${script_id}.lua" -type f)
+		done < <(find "$TARGET_DIR" -name "${script_id}.lua" -type f)
+	fi
 
 	# --- 📄 2.4 HYBRID DOCS PROMOTION & FALLBACKS
 	if [[ "$script_id" == "$CORE" ]]; then
@@ -149,7 +164,7 @@ for script_id in $PACKS; do
 	#echo -e "📦 Finalizing + Cleaning Package: $TARGET_DIR"
 	find "$TARGET_DIR" -type d -empty -not -path "*/.git*" -delete 2>/dev/null || true
 
-	# --- 🖼️ 2.7. HEADER INJECTION (Per-Pack basis)
+	# --- 🖼️ 2.6. HEADER INJECTION (Per-Pack basis)
 	H_START='<!-- HEADER_START -->'
 	H_END='<!-- HEADER_END -->'
 	TARGET_README="$TARGET_DIR/docs/README.md" # Note: 2.4 already renamed index to README
@@ -158,13 +173,16 @@ for script_id in $PACKS; do
 		# 🎨 Assets & Shields
 		DISPLAY_VER="$v_ver"; [[ "$v_stg" != "STABLE" ]] && DISPLAY_VER="${v_ver}-${v_stg}"
 		SAFE_TAR="${v_tar// /_}"
-		IMG_HDR="https://${FORGE[BRAW]}/${FORGE[USER]}/${MONOREPO}/refs/heads/main/docs/${script_id}/assets/icon.png"
-		S_MOHO="https://img.shields.io/badge/For-Moho_${SAFE_TAR}+-orange"
-		S_VER="https://img.shields.io/github/v/release/${FORGE[USER]}/${script_id}?logo=github&color=blue&label=version%20${DISPLAY_VER}"
-		S_DL="https://img.shields.io/github/downloads/${FORGE[USER]}/${script_id}/total?color=yellow&label=downloads"
+		AS_DIR="https://${FORGE[BRAW]}/${FORGE[USER]}/${MONOREPO}/refs/heads/main/docs/${script_id}/assets"
+		SI_DL="https://img.shields.io/github/downloads/${FORGE[USER]}/${script_id}/total?logo=data:image/svg%2bxml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjZWVlIiBkPSJNMjg4IDMyYTMyIDMyIDAgMSAwLTY0IDB2MjQzbC03My03NGEzMiAzMiAwIDAgMC00NiA0NmwxMjggMTI4YzEzIDEyIDMzIDEyIDQ2IDBsMTI4LTEyOGEzMiAzMiAwIDAgMC00Ni00NmwtNzMgNzRWMzJ6TTY0IDM1MmMtMzUgMC02NCAyOS02NCA2NHYzMmMwIDM1IDI5IDY0IDY0IDY0aDM4NGMzNSAwIDY0LTI5IDY0LTY0di0zMmMwLTM1LTI5LTY0LTY0LTY0SDM0N2wtNDYgNDVhNjQgNjQgMCAwIDEtOTAgMGwtNDUtNDVINjR6bTM2OCA1NmEyNCAyNCAwIDEgMSAwIDQ4IDI0IDI0IDAgMSAxIDAtNDh6Ii8+PC9zdmc+&color=blue&label=Download"
+		SL_DL="${URL_BASE}/${script_id}/releases/latest/download/${script_id}.zip" # "Download latest version..."
+		SI_REL="https://img.shields.io/github/release/${FORGE[USER]}/${script_id}?logo=github&color=yellow&label=Release"
+		SL_REL="${URL_BASE}/${script_id}/releases/latest" # Go to release in GitHub...
+		SI_TAR="https://img.shields.io/badge/For-Moho_${SAFE_TAR}-orange"
+		SL_TAR="https://moho.lostmarble.com/" # Go to Moho® website...
 
 		# 🏗️ Build Table (Single line for SED safety)
-		HEADER_HTML="<table width='100%' border='0'><tr><td align='left' valign='middle' width='96'><img src='${IMG_HDR}' width='48' alt='Icon'></td><td align='right' valign='middle' nowrap><a href='https://moho.lostmarble.com/'><img src='${S_MOHO}' alt='Moho'></a> <a href='${URL_BASE}/${script_id}/releases/latest'><img src='${S_VER}' alt='Version'></a> <img src='${S_DL}' alt='Downloads'></td></tr></table>"
+		HEADER_HTML="<table id="top" width='100%' border='0'><tr><td align='left' valign='middle' width='96'><picture><source media='(prefers-color-scheme: dark)' srcset='${AS_DIR}/icon_dark.png'><source media='(prefers-color-scheme: light)' srcset='${AS_DIR}/icon_light.png'><img src='${AS_DIR}/icon.png' width='96' alt='Icon' class='colorize'></picture></td><td align='right' valign='middle' width='1920' nowrap><a href='${SL_DL}' title='Download latest version...'><img src='${SI_DL}' alt='Download'></a> <a href='${SL_REL}' title='Go to release in GitHub...'><img src='${SI_REL}' alt='Release'></a> <a href='${SL_TAR}' title='Go to Moho® website...'><img src='${SI_TAR}' alt='Moho'></a></td></tr></table>"
 
 		# 💉 Surgical Injection (Direct & clean)
 		sed -i "\|$H_START|,\|$H_END|{ \|$H_START|b; \|$H_END|b; d; }" "$TARGET_README" # 1. Delete content between marker
@@ -176,11 +194,11 @@ for script_id in $PACKS; do
 		echo "    ✅ Header injected & Cleaned: $script_id"
 	fi
 
-	# --- 🎁 2.8. SCRIPT ZIP GENERATION (Optional & Local)
+	# --- 🎁 2.7. SCRIPT ZIP GENERATION (Optional & Local)
 	zipper "$script_id" "$TARGET_DIR"
 	((++REPORT[TOT]))
 
-	# --- 🚀 2.6. GIT SYNC & CATALOG DATA
+	# --- 🚀 2.8. GIT SYNC & CATALOG DATA
 	if [ -d "$TARGET_DIR/.git" ] || [[ "$script_id" == "$CORE" ]]; then
 		[[ -d "$TARGET_DIR/.git" ]] && cd "$TARGET_DIR" || true
 
@@ -201,15 +219,22 @@ for script_id in $PACKS; do
 			fi
 		fi
 
-		# 🗳️ B. DATA COLLECTION & SYNC (As long as the pack has a remote or it's the Core!)
+		# 🗳️ B. DATA COLLECTION FOR SHIELDS/CATALOG & SYNC (As long as the pack has a remote or it's the Core!)
 		if [ "$HAS_REMOTE" = true ] || [[ "$script_id" == "$CORE" ]]; then
 			# B1. COLLECTION (Whenever there is a remote, publishing or not)
 			v_name=$(echo "$script_id" | sed 's/ls_//g; s/_/ /g' | awk '{for(i=1;i<=NF;i++)sub(/./,toupper(substr($i,1,1)),$i)}1')
-			v_ver=$(echo "$header" | grep "${VARS[VER]}" | sed -n "${VAREXS[S]}") || :
-			v_bld=$(echo "$header" | grep "${VARS[BLD]}" | sed -n "${VAREXS[S]}") || :
-			v_stg=$(echo "$header" | grep "${VARS[STG]}" | sed -n "${VAREXS[S]}") || :
-			v_tar=$(echo "$header" | grep "${VARS[TAR]}" | sed -n "${VAREXS[S]}") || :
-			v_dsc=$(echo "$header" | grep "${VARS[DSC]}" | sed -n "${VAREXS[S]}") || :; [[ -z "$v_dsc" ]] && v_dsc="Lost Script $v_name for Moho®."
+			v_ver=$(echo "$header" | grep "${VARS[VER]}" | sed -n "${VAREXS[S]}") || v_ver="?"
+			v_stg=$(echo "$header" | grep "${VARS[STG]}" | sed -n "${VAREXS[S]}") || v_stg="STABLE"
+			v_bld=$(echo "$header" | grep "${VARS[BLD]}" | sed -n "${VAREXS[S]}") || v_bld="N/D"
+			v_tar=$(echo "$header" | grep "${VARS[TAR]}" | sed -n "${VAREXS[S]}") || v_tar=""
+			v_dsc=$(echo "$header" | grep "${VARS[DSC]}" | sed -n "${VAREXS[S]}") 
+			if [[ -z "$v_dsc" ]]; then # Description fallback
+				if [[ "$script_id" == "$CORE" ]]; then
+					v_dsc="Essential shared resources and core modules for Lost Scripts™."
+				else
+					v_dsc="Lost Script *$v_name* for Moho® Animation Software."
+				fi
+			fi
 			if [ "$HAS_REMOTE" = true ]; then
 				git tag 2>/dev/null | grep -Eq '^v?[0-9]+\.[0-9]+\.[0-9]+' && \
 				zip_url="https://${FORGE[BASE]}/${FORGE[USER]}/$script_id/releases/latest/download/${script_id}.zip" || zip_url="https://${FORGE[BASE]}/${FORGE[USER]}/$script_id/archive/refs/heads/main.zip"
@@ -263,8 +288,8 @@ done
 
 # 4. GENERATING CATALOG
 echo "--- 📝 Updating Monorepo's Catalog ---"
-OUTPUT_FILE="./docs/README.md"
 TEMP_TABLE=$(mktemp)
+OUTPUT_FILE="./docs/README.md"
 CAT_START='<!-- CATALOG_START -->'
 CAT_END='<!-- CATALOG_END -->'
 
@@ -281,30 +306,30 @@ if [ -s "$CATALOG_DATA" ]; then
 	LINES=$(grep -v "^${CORE}|" "$CATALOG_DATA" | sort -t'|' -k2) || true # ...then the others ordered by name (column 2)
 
 	{ echo "$LINE"; echo "$LINES"; } | while IFS="|" read -r id name ver bld dsc tar url stg; do
-		# --- 🕸 EXCLUSION FILTERS
 		[[ -z "$id" ]] && continue
 
+		# --- 🕸 EXCLUSION FILTERS
 		is_excluded=false
 		for skip in "${CATALOG_EXCLUDE[@]}"; do
 			[[ "$stg" == "$skip" ]] && is_excluded=true && break
 		done
-		[[ "$is_excluded" == true ]] && [[ "$id" != "$CORE" ]] && continue # If it is excluded and is NOT the CORE, skip to the next iteration
+		[[ "$is_excluded" == true ]] && [[ "$id" != "$CORE" ]] && continue
 
 		# --- 🔍 TRIPLE ICON/FALLBACK LOGIC (Hybrid structure)
 		PACK_LNK="${URL_BASE}/${id}/"
-		ASSETS_PATH="./docs/${id}/assets"
+		ASSETS_DIR="./docs/${id}/assets"
 		IMG_MAIN="${URL_RAW_MONO}/docs/assets/icon_unk.png"
 		IMG_DARK="${URL_RAW_MONO}/docs/assets/icon_unk_dark.png"
 		IMG_LIGHT="${URL_RAW_MONO}/docs/assets/icon_unk_light.png"
 
-		if [ -f "$ASSETS_PATH/icon.png" ]; then # We check for the presence of package-specific icons
+		if [ -f "$ASSETS_DIR/icon.png" ]; then # We check for the presence of package-specific icons
 			IMG_MAIN="${URL_RAW_MONO}/docs/${id}/assets/icon.png" # The default icon will always be the original Moho icon
-			if [ -f "$ASSETS_PATH/icon_dark.png" ]; then # We look for an optimized version for DARK
+			if [ -f "$ASSETS_DIR/icon_dark.png" ]; then # We look for an optimized version for DARK
 				IMG_DARK="${URL_RAW_MONO}/docs/${id}/assets/icon_dark.png"
 			else
 				IMG_DARK="$IMG_MAIN" # Fallback to the original if there is no dark
 			fi
-			if [ -f "$ASSETS_PATH/icon_light.png" ]; then # We look for an optimized version for LIGHT
+			if [ -f "$ASSETS_DIR/icon_light.png" ]; then # We look for an optimized version for LIGHT
 				IMG_LIGHT="${URL_RAW_MONO}/docs/${id}/assets/icon_light.png"
 			else
 				IMG_LIGHT="$IMG_MAIN" # Fallback to the original if there is no light
@@ -314,15 +339,16 @@ if [ -s "$CATALOG_DATA" ]; then
 		# --- 🖼️ PICTURE TAG GENERATION (GitHub/HUGO consistent)
 		PICTURE_TAG="<picture><source media='(prefers-color-scheme: dark)' srcset='${IMG_DARK}'><source media='(prefers-color-scheme: light)' srcset='${IMG_LIGHT}'><img src='${IMG_MAIN}' width='48' alt='Icon'></picture>"
 
-		# --- ✨ DISPLAY CUSTOMIZATION (Core VS. Others)
+		# --- ✨ DISPLAY CUSTOMIZATION (Core vs. Others)
+		STAGE_LABEL=""; [[ "$stg" != "STABLE" ]] && STAGE_LABEL="**<sub><ins>$stg</ins></sub>**" # 🎨 Inject the Stage here if it's not STABLE
 		if [[ "$id" == "$CORE" ]]; then
 			DISPLAY_NAME="[***LS&nbsp;<sup>Core</sup>***](${PACK_LNK} 'Go to \"$CORE\" repo...') "
-			DISPLAY_DESC="***<sup>Essential shared resources, utilities, and core modules required for the [Lost Scripts™](https://lost-scripts.github.io/ \"Go to Lost Scripts™ site...\") project to work with [MOHO](https://moho.lostmarble.com/ \"Go to Moho® homepage...\")<sup>&nbsp;Pro</sup> Animation Software.&emsp;</sup>***"
+			DISPLAY_DESC="***<sup>${dsc}&emsp;</sup>***<br><sub>𝓲 </sub><em><sub title='Build: $bld'>v$ver</sub> ${STAGE_LABEL}<sub> For Moho $tar</sub></em>"
 		else
 			DISPLAY_NAME="[**$name**](${PACK_LNK} 'Go to \"$id\" repo...')"
-			STAGE_LABEL=""; [[ "$stg" != "STABLE" ]] && STAGE_LABEL="**<sub><ins>$stg</ins></sub>**" # 🎨 Inject the Stage here if it's not STABLE
 			DISPLAY_DESC="<sup>$dsc</sup><br><sub>𝓲 </sub><em><sub title='Build: $bld'>v$ver</sub> ${STAGE_LABEL}<sub> For Moho $tar</sub></em>"
 		fi
+
 		echo "| [$PICTURE_TAG](${PACK_LNK} 'Go to \"$id\" repo...') | $DISPLAY_NAME | $DISPLAY_DESC | [ &nbsp;⏬&nbsp; ]($url 'Download: ${id}.zip') |" >> "$TEMP_TABLE"
 	done
 	echo -e "\n<p align='right'><sub>𝓲 <em>Generated by <strong>${INFO[NAME]}</strong><sup> v${INFO[VERSION]}</sup> @ <code>$(date +'%Y%m%d')</code></em></sub></p>" >> "$TEMP_TABLE"
