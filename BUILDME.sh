@@ -345,15 +345,15 @@ if [ -s "$CATALOG_DATA" ]; then
 			DISPLAY_NAME="<a href='${PACK_LNK}' title='Go to \"$CORE\" repo...'><strong><em>LS&nbsp;<sup>Core</sup></em></strong></a>"
 			DISPLAY_DESC="<strong><em><sup>${dsc}</sup></em></strong><br><sub>𝓲 </sub><em><sub title='Build: $bld'>v$ver</sub> ${STAGE_LABEL}<sub> For Moho $tar</sub></em>"
 		else
-			DISPLAY_NAME="<a href='${PACK_LNK}' title='Go to \"$id\" repo...'><strong>$name</strong></a>"
+			DISPLAY_NAME="<a href='${PACK_LNK}' title='Go to \"$id\" repo...'><strong><sup>$name</sup></strong></a>"
 			DISPLAY_DESC="<sup>$dsc</sup><br><sub>𝓲 </sub><em><sub title='Build: $bld'>v$ver</sub> ${STAGE_LABEL}<sub> For Moho $tar</sub></em>"
 		fi
 
 		# --- 📝 ROW GENERATION (Atomic HTML)
 		ROW="<tr>
 			<td align='center' valign='middle'><a href='${PACK_LNK}' title='Go to \"$id\" repo...'>$PICTURE_TAG</a></td>
-			<td valign='middle' nowrap>${DISPLAY_NAME}</td>
-			<td valign='middle' width='100%'>${DISPLAY_DESC}</td>
+			<td valign='middle' width='120'>${DISPLAY_NAME}</td>
+			<td valign='middle' width='1920'>${DISPLAY_DESC}</td>
 			<td align='center' valign='middle'><a href='${url}' title='Download: ${id}.zip'><img src='${ICON_DL}' alt='Download'></a></td>
 		</tr>"
 		echo "$ROW" >> "$TEMP_TABLE"
