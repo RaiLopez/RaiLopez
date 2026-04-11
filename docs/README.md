@@ -2,7 +2,8 @@
 <table id="top" width="100%" border="0"><tr><td align="left" valign="middle" width="96">
 <picture>
 	<source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/RaiLopez/RaiLopez/refs/heads/main/docs/assets/icon_dark.png">
-	<img src="https://raw.githubusercontent.com/RaiLopez/RaiLopez/refs/heads/main/docs/assets/icon.png" alt="Icon" width="96">
+	<source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/RaiLopez/RaiLopez/refs/heads/main/docs/assets/icon_light.png">
+	<img src="https://raw.githubusercontent.com/RaiLopez/RaiLopez/refs/heads/main/docs/assets/icon.png" width="96" alt="Icon">
 </picture>
 </td><td align="right" valign="middle" width="1920" nowrap>
 

@@ -184,7 +184,7 @@ for script_id in $PACKS; do
 		SL_TAR="https://moho.lostmarble.com/" # Go to Moho® homepage...
 
 		# 🏗️ Build Table (Single line for SED safety)
-		HEADER_HTML="<table id='top' width='100%' border='0'><tr><td align='center' valign='middle' width='144'><picture><source media='(prefers-color-scheme: dark)' srcset='${AS_DIR}/icon_dark.png'><source media='(prefers-color-scheme: light)' srcset='${AS_DIR}/icon_light.png'><img src='${AS_DIR}/icon.png' width='96' alt='Icon' class='colorize'></picture></td><td align='right' valign='middle' width='1920' nowrap><a href='${SL_DL}' title='Download latest version...'><img src='${SI_DL}' alt='Download'></a> <a href='${SL_REL}' title='Go to release in GitHub...'><img src='${SI_REL}' alt='Release'></a> <a href='${SL_TAR}' title='Go to Moho® homepage...'><img src='${SI_TAR}' alt='Moho'></a></td></tr></table>"
+		HEADER_HTML="<table id='top' width='100%' border='0'><tr><td align='left' valign='middle' width='96'><picture><source media='(prefers-color-scheme: dark)' srcset='${AS_DIR}/icon_dark.png'><source media='(prefers-color-scheme: light)' srcset='${AS_DIR}/icon_light.png'><img src='${AS_DIR}/icon.png' width='48' alt='Icon' class='colorize'></picture></td><td align='right' valign='middle' width='1920' nowrap><a href='${SL_DL}' title='Download latest version...'><img src='${SI_DL}' alt='Download'></a> <a href='${SL_REL}' title='Go to release in GitHub...'><img src='${SI_REL}' alt='Release'></a> <a href='${SL_TAR}' title='Go to Moho® homepage...'><img src='${SI_TAR}' alt='Moho'></a></td></tr></table>"
 
 		# 💉 Surgical Injection (Direct & clean)
 		sed -i "\|$H_START|,\|$H_END|{ \|$H_START|b; \|$H_END|b; d; }" "$TARGET_README" # 1. Delete content between marker
