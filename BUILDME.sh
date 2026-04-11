@@ -1,5 +1,6 @@
 #!/bin/bash
-set +o history; set +H # Prevent history pollution; Disable '!' history expansion for preventing errors when using ! marks in strings or sed (alternative: "'!'")
+OLD_HISTFILE="$HISTFILE"; export HISTFILE=/dev/null; trap 'export HISTFILE="$OLD_HISTFILE"' EXIT # Prevent history pollution
+set +H # Disable '!' history expansion for preventing errors when using ! marks in strings or sed (alternative: "'!'")
 set -euo pipefail; trap 'debugger $LINENO "$BASH_COMMAND"' ERR # Debug Mode (Comment/Uncomment as needed)
 #export PS4='+ ${BASH_SOURCE}:${LINENO}: ${FUNCNAME[0]:+${FUNCNAME[0]}(): }' # Uncomment for detailed/alternative debugging with 'bash -x ./BUILDME.sh'
 
