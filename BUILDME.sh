@@ -297,7 +297,7 @@ CAT_START='<!-- CATALOG_START -->'
 CAT_END='<!-- CATALOG_END -->'
 
 # 4a. Table Header (Remote icons so they're always visible)
-echo "<table width='100%'><thead><tr><th align='center'>Icon</th><th align='left'>Name</th><th align='left'>Description</th><th align='center' title='Direct Download Links'>📦</th></tr></thead><tbody>" > "$TEMP_TABLE"
+echo "<table width='100%'><thead><tr><th align='center' width='96'>Icon</th><th align='center' width='120'>Name</th><th align='center' width='1920'>Description</th><th align='center' title='Direct Download Links'>📦</th></tr></thead><tbody>" > "$TEMP_TABLE"
 
 # 4b. Reorder and Process Collected Data
 if [ -s "$CATALOG_DATA" ]; then
@@ -352,8 +352,8 @@ if [ -s "$CATALOG_DATA" ]; then
 		# --- 📝 ROW GENERATION (Atomic HTML)
 		ROW="<tr>
 			<td align='center' valign='middle'><a href='${PACK_LNK}' title='Go to \"$id\" repo...'>$PICTURE_TAG</a></td>
-			<td valign='middle' width='120'>${DISPLAY_NAME}</td>
-			<td valign='middle' width='1920'>${DISPLAY_DESC}</td>
+			<td align='center' valign='middle'>${DISPLAY_NAME}</td>
+			<td valign='middle'>${DISPLAY_DESC}</td>
 			<td align='center' valign='middle'><a href='${url}' title='Download: ${id}.zip'><img src='${ICON_DL}' alt='Download'></a></td>
 		</tr>"
 		echo "$ROW" >> "$TEMP_TABLE"
