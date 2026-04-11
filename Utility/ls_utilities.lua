@@ -8,7 +8,8 @@ ScriptBuild = "20260409-2235"
 ScriptVersion = "0.0.1"
 ScriptStage = "BETA"
 ScriptTarget = "14.3+ Pro"
-ScriptDesc = "***<sup>Essential shared resources, utilities, and core modules required for the [Lost Scripts&trade;](https://lost-scripts.github.io/ \"Go to Lost Scripts&trade; site...\") project to work with [MOHO&reg;](https://moho.lostmarble.com/ \"Go to Moho&reg; homepage...\")<sup>&nbsp;Pro</sup> Animation Software.&emsp;</sup>***" -- ⚠ AVOID UNICODE! (Use HTML entities)
+ScriptDesc = "Essential shared resources, utilities, and core modules required for the [Lost Scripts&trade;](https://lost-scripts.github.io/ 'Go to Lost Scripts&trade; site...') project to work with [MOHO&reg;](https://moho.lostmarble.com/ 'Go to Moho&reg; homepage...')<sup>&nbsp;Pro</sup> Animation Software." -- ⚠ AVOID UNICODE! (Use HTML entities)
+
 
 -- **************************************************
 -- General information about this script
