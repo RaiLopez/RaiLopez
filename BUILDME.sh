@@ -232,7 +232,7 @@ for script_id in $PACKS; do
 			v_dsc=$(echo "$header" | grep "${VARS[DSC]}" | sed -n "${VAREXS[S]}") || v_dsc=""
 			if [[ -z "$v_dsc" ]]; then # Description fallback
 				if [[ "$script_id" == "$CORE" ]]; then
-					v_dsc="Essential shared resources and core modules required for the <a href='https://lost-scripts.github.io/' title='Go to Lost Scripts&trade; website...'>Lost Scripts</a>&trade; project to work with <a href='https://moho.lostmarble.com/' title='Go to Moho&reg; homepage...'>MOHO</a> Animation Software.&emsp;"
+					v_dsc="Essential shared resources and core modules required for the <a href='https://lost-scripts.github.io/' title='Go to Lost Scripts&trade; website...'>Lost Scripts</a>&trade; project to work with <a href='https://moho.lostmarble.com/' title='Go to Moho&reg; homepage...'>MOHO</a> Animation Software."
 				else
 					v_dsc="Lost Script *$v_name* for [MOHO](https://moho.lostmarble.com/ 'Go to Moho&reg; homepage...')® Animation Software."
 				fi
