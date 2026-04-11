@@ -168,9 +168,8 @@ for script_id in $PACKS; do
 	find "$TARGET_DIR" -type d -empty -not -path "*/.git*" -delete 2>/dev/null || true
 
 	# --- 🖼️ 2.6. HEADER INJECTION (Per-Pack basis)
-	H_START='<!-- HEADER_START -->'
-	H_END='<!-- HEADER_END -->'
 	TARGET_README="$TARGET_DIR/docs/README.md" # Note: 2.4 already renamed index to README
+	H_START='<!-- HEADER_START -->'; H_END='<!-- HEADER_END -->'
 
 	if [ -f "$TARGET_README" ] && grep -q "$H_START" "$TARGET_README" && grep -q "$H_END" "$TARGET_README"; then
 		# 🎨 Assets & Shields
@@ -185,7 +184,7 @@ for script_id in $PACKS; do
 		SL_TAR="https://moho.lostmarble.com/" # Go to Moho® homepage...
 
 		# 🏗️ Build Table (Single line for SED safety)
-		HEADER_HTML="<table id="top" width='100%' border='0'><tr><td align='left' valign='middle' width='96'><picture><source media='(prefers-color-scheme: dark)' srcset='${AS_DIR}/icon_dark.png'><source media='(prefers-color-scheme: light)' srcset='${AS_DIR}/icon_light.png'><img src='${AS_DIR}/icon.png' width='96' alt='Icon' class='colorize'></picture></td><td align='right' valign='middle' width='1920' nowrap><a href='${SL_DL}' title='Download latest version...'><img src='${SI_DL}' alt='Download'></a> <a href='${SL_REL}' title='Go to release in GitHub...'><img src='${SI_REL}' alt='Release'></a> <a href='${SL_TAR}' title='Go to Moho® homepage...'><img src='${SI_TAR}' alt='Moho'></a></td></tr></table>"
+		HEADER_HTML="<table id='top' width='100%' border='0'><tr><td align='center' valign='middle' width='96'><picture><source media='(prefers-color-scheme: dark)' srcset='${AS_DIR}/icon_dark.png'><source media='(prefers-color-scheme: light)' srcset='${AS_DIR}/icon_light.png'><img src='${AS_DIR}/icon.png' width='96' alt='Icon' class='colorize'></picture></td><td align='right' valign='middle' width='1920' nowrap><a href='${SL_DL}' title='Download latest version...'><img src='${SI_DL}' alt='Download'></a> <a href='${SL_REL}' title='Go to release in GitHub...'><img src='${SI_REL}' alt='Release'></a> <a href='${SL_TAR}' title='Go to Moho® homepage...'><img src='${SI_TAR}' alt='Moho'></a></td></tr></table>"
 
 		# 💉 Surgical Injection (Direct & clean)
 		sed -i "\|$H_START|,\|$H_END|{ \|$H_START|b; \|$H_END|b; d; }" "$TARGET_README" # 1. Delete content between marker
@@ -293,11 +292,10 @@ done
 echo "--- 📝 Updating Monorepo's Catalog ---"
 TEMP_TABLE=$(mktemp)
 OUTPUT_FILE="./docs/README.md"
-CAT_START='<!-- CATALOG_START -->'
-CAT_END='<!-- CATALOG_END -->'
+CAT_START='<!-- CATALOG_START -->'; CAT_END='<!-- CATALOG_END -->'
 
 # 4a. Table Header (Remote icons so they're always visible)
-echo "<table width='100%'><thead><tr><th align='center' width='96'>Icon</th><th align='center' width='120'>Name</th><th align='center' width='1920'>Description</th><th align='center' title='Direct Download Links'>📦</th></tr></thead><tbody>" > "$TEMP_TABLE"
+echo "<table id='catalog' width='100%' border='0'><thead><tr><th align='center' width='96'>Icon</th><th align='center' width='120'>Name</th><th align='center' width='1920'>Description</th><th align='center' title='Direct Download Links'>📦</th></tr></thead><tbody>" > "$TEMP_TABLE"
 
 # 4b. Reorder and Process Collected Data
 if [ -s "$CATALOG_DATA" ]; then
@@ -345,7 +343,7 @@ if [ -s "$CATALOG_DATA" ]; then
 			DISPLAY_NAME="<a href='${PACK_LNK}' title='Go to \"$CORE\" repo...'><strong><em>LS&nbsp;<sup>Core</sup></em></strong></a>"
 			DISPLAY_DESC="<strong><em><sup>${dsc}</sup></em></strong><br><sub>𝓲 </sub><em><sub title='Build: $bld'>v$ver</sub> ${STAGE_LABEL}<sub> For Moho $tar</sub></em>"
 		else
-			DISPLAY_NAME="<a href='${PACK_LNK}' title='Go to \"$id\" repo...'><strong><sup>$name</sup></strong></a>"
+			DISPLAY_NAME="<a href='${PACK_LNK}' title='Go to \"$id\" repo...' style='text-decoration: none'><strong><sup>$name</sup></strong></a>"
 			DISPLAY_DESC="<sup>$dsc</sup><br><sub>𝓲 </sub><em><sub title='Build: $bld'>v$ver</sub> ${STAGE_LABEL}<sub> For Moho $tar</sub></em>"
 		fi
 
