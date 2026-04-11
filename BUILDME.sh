@@ -376,7 +376,8 @@ echo -ne "--- ？ ${T_S}R${T_N}estart? (${T_S}Y${T_N}es/${T_S}S${T_N}hell/${T_S}
 if [[ "$action" =~ ^[yYrR]$ ]]; then
 	echo -e "--- 🔁 Restarting... \n"; sleep 0.5; exec bash "$0"
 elif [[ "$action" =~ ^[sS]$ ]]; then
-	echo -e "--- 💻 Entering Shell... ${T_D}(💡 Type 'exit' to return to Builder)${T_N}"; bash --login -i; exec bash "$0"
+	echo -e "--- 💻 Entering Shell... ${T_D}(💡 Type 'exit' to return to Builder)${T_N}"
+	export HISTFILE="$OLD_HISTFILE"; bash --login -i; export HISTFILE=/dev/null; exec bash "$0"
 else
 	echo -e "--- ❎ Exiting... "; sleep 0.5; exit 0
 fi
