@@ -59,7 +59,7 @@ Suggestions and bugs can be reported in the [<i>Issues</i>](https://github.com/l
 [h-shield2-i]: https://img.shields.io/github/release/lost-scripts/ls?logo=github&color=yellow&label=Release
 [h-shield2-a]: https://github.com/lost-scripts/ls/releases/latest "Go to release in GitHub... (Currently unavailable)"
 
-[h-shield3-i]: https://img.shields.io/badge/for-Moho_14.4+_Pro-orange
+[h-shield3-i]: https://img.shields.io/badge/For-Moho_14.4+_Pro-orange
 [h-shield3-a]: https://moho.lostmarble.com/ "Go to Moho® website..."
 
 [3-1a]: https://manual.lostmarble.com/app/page/1bmBks7y8KPdbPd-ll9kQGPdZJfDf3Rq67BCp8F5Y-FI?p=1UxA8Gi5DttJku9AmFlSpO0gJw4U9flX3
