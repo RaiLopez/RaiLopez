@@ -1,6 +1,3 @@
-<!-- HEADER_START -->
-<!-- HEADER_END -->
-
 <!-- mIxEd style head (quite simple with modes and full width in GitHub) [![h-icon]](#!) -->
 <table id="top" width="100%" border="0"><tr><td align="left" valign="middle" width="96">
 <picture>
@@ -56,13 +53,13 @@ Suggestions and bugs can be reported in the [<i>Issues</i>](https://github.com/l
 
 [h-icon]: https://raw.githubusercontent.com/RaiLopez/RaiLopez/refs/heads/main/docs/assets/icon.webp "Icon"
 
-[h-shield1-i]: https://img.shields.io/github/downloads/lost-scripts/ls/total?logo=data:image/svg%2bxml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjZWVlIiBkPSJNMjg4IDMyYTMyIDMyIDAgMSAwLTY0IDB2MjQzbC03My03NGEzMiAzMiAwIDAgMC00NiA0NmwxMjggMTI4YzEzIDEyIDMzIDEyIDQ2IDBsMTI4LTEyOGEzMiAzMiAwIDAgMC00Ni00NmwtNzMgNzRWMzJ6TTY0IDM1MmMtMzUgMC02NCAyOS02NCA2NHYzMmMwIDM1IDI5IDY0IDY0IDY0aDM4NGMzNSAwIDY0LTI5IDY0LTY0di0zMmMwLTM1LTI5LTY0LTY0LTY0SDM0N2wtNDYgNDVhNjQgNjQgMCAwIDEtOTAgMGwtNDUtNDVINjR6bTM2OCA1NmEyNCAyNCAwIDEgMSAwIDQ4IDI0IDI0IDAgMSAxIDAtNDh6Ii8+PC9zdmc+&color=blue
+[h-shield1-i]: https://img.shields.io/github/downloads/lost-scripts/ls/total?logo=data:image/svg%2bxml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjZWVlIiBkPSJNMjg4IDMyYTMyIDMyIDAgMSAwLTY0IDB2MjQzbC03My03NGEzMiAzMiAwIDAgMC00NiA0NmwxMjggMTI4YzEzIDEyIDMzIDEyIDQ2IDBsMTI4LTEyOGEzMiAzMiAwIDAgMC00Ni00NmwtNzMgNzRWMzJ6TTY0IDM1MmMtMzUgMC02NCAyOS02NCA2NHYzMmMwIDM1IDI5IDY0IDY0IDY0aDM4NGMzNSAwIDY0LTI5IDY0LTY0di0zMmMwLTM1LTI5LTY0LTY0LTY0SDM0N2wtNDYgNDVhNjQgNjQgMCAwIDEtOTAgMGwtNDUtNDVINjR6bTM2OCA1NmEyNCAyNCAwIDEgMSAwIDQ4IDI0IDI0IDAgMSAxIDAtNDh6Ii8+PC9zdmc+&color=blue&label=Download
 [h-shield1-a]: https://github.com/lost-scripts/ls/releases/latest/download/ls.zip "Download latest version... (Currently unavailable)"
 
-[h-shield2-i]: https://img.shields.io/github/release/lost-scripts/ls
+[h-shield2-i]: https://img.shields.io/github/release/lost-scripts/ls?logo=github&color=yellow&label=Release
 [h-shield2-a]: https://github.com/lost-scripts/ls/releases/latest "Go to release in GitHub... (Currently unavailable)"
 
-[h-shield3-i]: https://img.shields.io/badge/for-Moho_14.3+_Pro-orange
+[h-shield3-i]: https://img.shields.io/badge/for-Moho_14.4+_Pro-orange
 [h-shield3-a]: https://moho.lostmarble.com/ "Go to Moho® website..."
 
 [3-1a]: https://manual.lostmarble.com/app/page/1bmBks7y8KPdbPd-ll9kQGPdZJfDf3Rq67BCp8F5Y-FI?p=1UxA8Gi5DttJku9AmFlSpO0gJw4U9flX3
