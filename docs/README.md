@@ -15,7 +15,7 @@ Full catalog of *Lost Scripts™*. The rightmost direct download links provide y
 
 <div align='center'>
 <!-- CATALOG_START -->
-<table id='catalog' width='100%' border='0'><thead><tr><th align='center' width='96'>🖼️</th><th align='center' width='120'>Name</th><th align='center' width='1920'>Description</th><th align='center' title='Direct Download Links'>📦</th></tr></thead><tbody>
+<table id='catalog' width='100%' border='0'><thead><tr><th align='center' width='96'></th><th align='center' width='120'>Name</th><th align='center' width='1920'>Description</th><th align='center' title='Direct Download Links'>📦</th></tr></thead><tbody>
 <tr>
 			<td valign='middle' align='center'><a href='https://github.com/RaiLopez/ls/' title='Go to "ls" repo...'><picture><source media='(prefers-color-scheme: dark)' srcset='https://raw.githubusercontent.com/RaiLopez/RaiLopez/refs/heads/main/docs/ls/assets/icon_dark.png'><source media='(prefers-color-scheme: light)' srcset='https://raw.githubusercontent.com/RaiLopez/RaiLopez/refs/heads/main/docs/ls/assets/icon_light.png'><img src='https://raw.githubusercontent.com/RaiLopez/RaiLopez/refs/heads/main/docs/ls/assets/icon.png' width='48' alt='Icon'></picture></a></td>
 			<td valign='middle' align='center'><a href='https://github.com/RaiLopez/ls/' title='Go to "ls" repo...'><strong><em>LS&nbsp;<sup>Core</sup></em></strong></a></td>

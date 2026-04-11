@@ -295,7 +295,7 @@ OUTPUT_FILE="./docs/README.md"
 CAT_START='<!-- CATALOG_START -->'; CAT_END='<!-- CATALOG_END -->'
 
 # 4a. Table Header (Remote icons so they're always visible)
-echo "<table id='catalog' width='100%' border='0'><thead><tr><th align='center' width='96'>🖼️</th><th align='center' width='120'>Name</th><th align='center' width='1920'>Description</th><th align='center' title='Direct Download Links'>📦</th></tr></thead><tbody>" > "$TEMP_TABLE"
+echo "<table id='catalog' width='100%' border='0'><thead><tr><th align='center' width='96'></th><th align='center' width='120'>Name</th><th align='center' width='1920'>Description</th><th align='center' title='Direct Download Links'>📦</th></tr></thead><tbody>" > "$TEMP_TABLE"
 
 # 4b. Reorder and Process Collected Data
 if [ -s "$CATALOG_DATA" ]; then
