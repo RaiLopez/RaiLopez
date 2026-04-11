@@ -1,5 +1,5 @@
 #!/bin/bash
-set +H # Disables '!' history expansion for preventing "event not found" errors when using ! marks in strings or sed (alternative: "'!'")
+set +H; set +o history # Disables '!' history expansion for preventing "event not found" errors when using ! marks in strings or sed (alternative: "'!'"); Prevent history pollution
 set -euo pipefail; trap 'debugger $LINENO "$BASH_COMMAND"' ERR # Debug Mode (Comment/Uncomment as needed)
 #export PS4='+ ${BASH_SOURCE}:${LINENO}: ${FUNCNAME[0]:+${FUNCNAME[0]}(): }' # Uncomment for detailed/alternative debugging with 'bash -x ./BUILDME.sh'
 
@@ -230,7 +230,7 @@ for script_id in $PACKS; do
 			v_dsc=$(echo "$header" | grep "${VARS[DSC]}" | sed -n "${VAREXS[S]}") || v_dsc=""
 			if [[ -z "$v_dsc" ]]; then # Description fallback
 				if [[ "$script_id" == "$CORE" ]]; then
-					v_dsc="Essential shared resources and core modules required for the Lost Scripts™ project to work with [MOHO](https://moho.lostmarble.com/ 'Go to Moho&reg; homepage...')® Animation&nbsp;Software.&emsp;"
+					v_dsc="Essential shared resources and core modules required for the [Lost Scripts](https://lost-scripts.github.io/ 'Go to Lost Scripts&trade; site...')&trade; project to work with [MOHO](https://moho.lostmarble.com/ 'Go to Moho&reg; homepage...')® Animation Software.&emsp;"
 				else
 					v_dsc="Lost Script *$v_name* for [MOHO](https://moho.lostmarble.com/ 'Go to Moho&reg; homepage...')® Animation Software."
 				fi
