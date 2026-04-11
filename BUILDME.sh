@@ -1,5 +1,5 @@
 #!/bin/bash
-set +H; set +o history # Disables '!' history expansion for preventing "event not found" errors when using ! marks in strings or sed (alternative: "'!'"); Prevent history pollution
+set +o history; set +H # Prevent history pollution; Disable '!' history expansion for preventing errors when using ! marks in strings or sed (alternative: "'!'")
 set -euo pipefail; trap 'debugger $LINENO "$BASH_COMMAND"' ERR # Debug Mode (Comment/Uncomment as needed)
 #export PS4='+ ${BASH_SOURCE}:${LINENO}: ${FUNCNAME[0]:+${FUNCNAME[0]}(): }' # Uncomment for detailed/alternative debugging with 'bash -x ./BUILDME.sh'
 
@@ -103,13 +103,13 @@ for script_id in $PACKS; do
 		# Para el CORE, forzamos la lectura del archivo maestro
 		MASTER_CORE="./Utility/ls_utilities.lua"
 		if [ -f "$MASTER_CORE" ]; then
-			header=$(head -n 35 "$MASTER_CORE" | tr -d '\r')
+			header=$(head -n 25 "$MASTER_CORE" | tr -d '\r')
 			echo "    ℹ️ Core metadata sourced from: $MASTER_CORE"
 		fi
 	else
 		# Para los PACKS, mantenemos tu lógica de búsqueda original intacta
 		while read -r main_file; do # We look for ALL namesake script files in TARGET_DIR
-			temp_header=$(head -n 35 "$main_file" | tr -d '\r') # We check the header to see if it's the one that contains the info
+			temp_header=$(head -n 25 "$main_file" | tr -d '\r') # We check the header to see if it's the one that contains the info
 			# Buscamos ScriptDep o ScriptVersion para identificar el archivo principal
 			if echo "$temp_header" | grep -qE "${VARS[DEP]}|${VARS[VER]}"; then # Guard clause: if ScriptDep variable is found...
 				header="$temp_header"
