@@ -22,6 +22,7 @@ declare --  CATALOG_DATA=$(mktemp)
 declare --  PUBLISH=false # Requires the script folder has a repo and 'origin' remote
 declare -A  REPORT=( [DUR]=0 [TOT]=0 [LOC]=0 [PUB]=0 [ISS]=0)
 declare --  T_R='\e[1;31m'; T_G='\e[1;32m'; T_Y='\e[1;33m'; T_B='\e[1;34m'; T_D='\e[2m'; T_S='\e[1m' ; T_U='\e[4m'; T_C='\e['; T_N='\e[0m' # Text: Red; Green; Yellow; Blue; Dim; Strong, UL; Custom; Normal (reset)
+readonly ICON_DL_B64="PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjZWVlIiBkPSJNMjg4IDMyYTMyIDMyIDAgMSAwLTY0IDB2MjQzbC03My03NGEzMiAzMiAwIDAgMC00NiA0NmwxMjggMTI4YzEzIDEyIDMzIDEyIDQ2IDBsMTI4LTEyOGEzMiAzMiAwIDAgMC00Ni00NmwtNzMgNzRWMzJ6TTY0IDM1MmMtMzUgMC02NCAyOS02NCA2NHYzMmMwIDM1IDI5IDY0IDY0IDY0aDM4NGMzNSAwIDY0LTI5IDY0LTY0di0zMmMwLTM1LTI5LTY0LTY0LTY0SDM0N2wtNDYgNDVhNjQgNjQgMCAwIDEtOTAgMGwtNDUtNDVINjR6bTM2OCA1NmEyNCAyNCAwIDEgMSAwIDQ4IDI0IDI0IDAgMSAxIDAtNDh6Ii8+PC9zdmc+"
 
 # 🛠️ HELPER FUNCTIONS
 debugger(){ # Debug Mode helper for catching errors before closing
@@ -175,7 +176,7 @@ for script_id in $PACKS; do
 		DISPLAY_VER="$v_ver"; [[ "$v_stg" != "STABLE" ]] && DISPLAY_VER="${v_ver}-${v_stg}"
 		SAFE_TAR="${v_tar// /_}"
 		AS_DIR="https://${FORGE[BRAW]}/${FORGE[USER]}/${MONOREPO}/refs/heads/main/docs/${script_id}/assets"
-		SI_DL="https://img.shields.io/github/downloads/${FORGE[USER]}/${script_id}/total?logo=data:image/svg%2bxml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjZWVlIiBkPSJNMjg4IDMyYTMyIDMyIDAgMSAwLTY0IDB2MjQzbC03My03NGEzMiAzMiAwIDAgMC00NiA0NmwxMjggMTI4YzEzIDEyIDMzIDEyIDQ2IDBsMTI4LTEyOGEzMiAzMiAwIDAgMC00Ni00NmwtNzMgNzRWMzJ6TTY0IDM1MmMtMzUgMC02NCAyOS02NCA2NHYzMmMwIDM1IDI5IDY0IDY0IDY0aDM4NGMzNSAwIDY0LTI5IDY0LTY0di0zMmMwLTM1LTI5LTY0LTY0LTY0SDM0N2wtNDYgNDVhNjQgNjQgMCAwIDEtOTAgMGwtNDUtNDVINjR6bTM2OCA1NmEyNCAyNCAwIDEgMSAwIDQ4IDI0IDI0IDAgMSAxIDAtNDh6Ii8+PC9zdmc+&color=blue&label=Download"
+		SI_DL="https://img.shields.io/github/downloads/${FORGE[USER]}/${script_id}/total?logo=data:image/svg%2bxml;base64,${ICON_DL_B64}&color=blue&label=Download"
 		SL_DL="${URL_BASE}/${script_id}/releases/latest/download/${script_id}.zip" # "Download latest version..."
 		SI_REL="https://img.shields.io/github/release/${FORGE[USER]}/${script_id}?logo=github&color=yellow&label=Release"
 		SL_REL="${URL_BASE}/${script_id}/releases/latest" # Go to release in GitHub...
@@ -319,26 +320,27 @@ if [ -s "$CATALOG_DATA" ]; then
 		# --- 🔍 TRIPLE ICON/FALLBACK LOGIC (Hybrid structure)
 		PACK_LNK="${URL_BASE}/${id}/"
 		ASSETS_DIR="./docs/${id}/assets"
-		IMG_MAIN="${URL_RAW_MONO}/docs/assets/icon_unk.png"
-		IMG_DARK="${URL_RAW_MONO}/docs/assets/icon_unk_dark.png"
-		IMG_LIGHT="${URL_RAW_MONO}/docs/assets/icon_unk_light.png"
+		ICON_MAIN="${URL_RAW_MONO}/docs/assets/icon_unk.png"
+		ICON_DARK="${URL_RAW_MONO}/docs/assets/icon_unk_dark.png"
+		ICON_LIGHT="${URL_RAW_MONO}/docs/assets/icon_unk_light.png"
+		ICON_DL="https://img.shields.io/badge/-%20-blue?style=flat&logo=data:image/svg%2bxml;base64,${ICON_DL_B64}&logoColor=white" # Usamos logoColor=white para asegurar el contraste y un label vacío para que parezca un botón cuadrado
 
 		if [ -f "$ASSETS_DIR/icon.png" ]; then # We check for the presence of package-specific icons
-			IMG_MAIN="${URL_RAW_MONO}/docs/${id}/assets/icon.png" # The default icon will always be the original Moho icon
+			ICON_MAIN="${URL_RAW_MONO}/docs/${id}/assets/icon.png" # The default icon will always be the original Moho icon
 			if [ -f "$ASSETS_DIR/icon_dark.png" ]; then # We look for an optimized version for DARK
-				IMG_DARK="${URL_RAW_MONO}/docs/${id}/assets/icon_dark.png"
+				ICON_DARK="${URL_RAW_MONO}/docs/${id}/assets/icon_dark.png"
 			else
-				IMG_DARK="$IMG_MAIN" # Fallback to the original if there is no dark
+				ICON_DARK="$ICON_MAIN" # Fallback to the original if there is no dark
 			fi
 			if [ -f "$ASSETS_DIR/icon_light.png" ]; then # We look for an optimized version for LIGHT
-				IMG_LIGHT="${URL_RAW_MONO}/docs/${id}/assets/icon_light.png"
+				ICON_LIGHT="${URL_RAW_MONO}/docs/${id}/assets/icon_light.png"
 			else
-				IMG_LIGHT="$IMG_MAIN" # Fallback to the original if there is no light
+				ICON_LIGHT="$ICON_MAIN" # Fallback to the original if there is no light
 			fi
 		fi
 
 		# --- 🖼️ PICTURE TAG GENERATION (GitHub/HUGO consistent)
-		PICTURE_TAG="<picture><source media='(prefers-color-scheme: dark)' srcset='${IMG_DARK}'><source media='(prefers-color-scheme: light)' srcset='${IMG_LIGHT}'><img src='${IMG_MAIN}' width='48' alt='Icon'></picture>"
+		PICTURE_TAG="<picture><source media='(prefers-color-scheme: dark)' srcset='${ICON_DARK}'><source media='(prefers-color-scheme: light)' srcset='${ICON_LIGHT}'><img src='${ICON_MAIN}' width='48' alt='Icon'></picture>"
 
 		# --- ✨ DISPLAY CUSTOMIZATION (Core vs. Others)
 		STAGE_LABEL=""; [[ "$stg" != "STABLE" ]] && STAGE_LABEL="**<sub><ins>$stg</ins></sub>**" # 🎨 Inject the Stage here if it's not STABLE
@@ -350,7 +352,7 @@ if [ -s "$CATALOG_DATA" ]; then
 			DISPLAY_DESC="<sup>$dsc</sup><br><sub>𝓲 </sub><em><sub title='Build: $bld'>v$ver</sub> ${STAGE_LABEL}<sub> For Moho $tar</sub></em>"
 		fi
 
-		echo "| [$PICTURE_TAG](${PACK_LNK} 'Go to \"$id\" repo...') | $DISPLAY_NAME | $DISPLAY_DESC | [ &nbsp;⏬&nbsp; ]($url 'Download: ${id}.zip') |" >> "$TEMP_TABLE"
+		echo "| [$PICTURE_TAG](${PACK_LNK} 'Go to \"$id\" repo...') | $DISPLAY_NAME | $DISPLAY_DESC | [![]($ICON_DL)]($url 'Download: ${id}.zip') |" >> "$TEMP_TABLE" # ⏬📥
 	done
 	echo -e "\n<p align='right'><sub>𝓲 <em>Generated by <strong>${INFO[NAME]}</strong><sup> v${INFO[VERSION]}</sup> @ <code>$(date +'%Y%m%d')</code></em></sub></p>" >> "$TEMP_TABLE"
 fi
