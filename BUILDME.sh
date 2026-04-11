@@ -5,7 +5,7 @@ set -euo pipefail; trap 'debugger $LINENO "$BASH_COMMAND"' ERR # Debug Mode (Com
 #export PS4='+ ${BASH_SOURCE}:${LINENO}: ${FUNCNAME[0]:+${FUNCNAME[0]}(): }' # Uncomment for detailed/alternative debugging with 'bash -x ./BUILDME.sh'
 
 # ⚙ CONFIGURATION
-declare -Ar INFO=( [NAME]="Lost Builder" [VERSION]="1.7.1" [CREATOR]="Rai López" [DESC]="Lost Project's Development Helper" )
+declare -Ar INFO=( [NAME]="Lost Builder" [VERSION]="1.7.2" [CREATOR]="Rai López" [DESC]="Lost Project's Development Helper" )
 declare -ar INCLUDE=( "Embed" "Menu" "Modules" "ScriptResources" "Smart" "Tool" "Utility" "LICENSE" ) # Note: Make sure the element doesn't remain orphaned in Core if you remove it from here!
 declare -ar SYNC=( "Modules" "Tool" "Utility" "ScriptResources" "Menu" "Embed" "Smart" ) # Pack folders for syncing...
 declare -Ar VARS=( [DEP]="ScriptDep" [VER]="ScriptVersion" [BLD]="ScriptBuild" [STG]="ScriptStage" [DSC]="ScriptDesc" [TAR]="ScriptTarget" ) # Script header variables (if "ScriptDep" is present in a .lua file, it's considered a pack!)
@@ -182,10 +182,10 @@ for script_id in $PACKS; do
 		SI_REL="https://img.shields.io/github/release/${FORGE[USER]}/${script_id}?logo=github&color=yellow&label=Release"
 		SL_REL="${URL_BASE}/${script_id}/releases/latest" # Go to release in GitHub...
 		SI_TAR="https://img.shields.io/badge/For-Moho_${SAFE_TAR}-orange"
-		SL_TAR="https://moho.lostmarble.com/" # Go to Moho® website...
+		SL_TAR="https://moho.lostmarble.com/" # Go to Moho® homepage...
 
 		# 🏗️ Build Table (Single line for SED safety)
-		HEADER_HTML="<table id="top" width='100%' border='0'><tr><td align='left' valign='middle' width='96'><picture><source media='(prefers-color-scheme: dark)' srcset='${AS_DIR}/icon_dark.png'><source media='(prefers-color-scheme: light)' srcset='${AS_DIR}/icon_light.png'><img src='${AS_DIR}/icon.png' width='96' alt='Icon' class='colorize'></picture></td><td align='right' valign='middle' width='1920' nowrap><a href='${SL_DL}' title='Download latest version...'><img src='${SI_DL}' alt='Download'></a> <a href='${SL_REL}' title='Go to release in GitHub...'><img src='${SI_REL}' alt='Release'></a> <a href='${SL_TAR}' title='Go to Moho® website...'><img src='${SI_TAR}' alt='Moho'></a></td></tr></table>"
+		HEADER_HTML="<table id="top" width='100%' border='0'><tr><td align='left' valign='middle' width='96'><picture><source media='(prefers-color-scheme: dark)' srcset='${AS_DIR}/icon_dark.png'><source media='(prefers-color-scheme: light)' srcset='${AS_DIR}/icon_light.png'><img src='${AS_DIR}/icon.png' width='96' alt='Icon' class='colorize'></picture></td><td align='right' valign='middle' width='1920' nowrap><a href='${SL_DL}' title='Download latest version...'><img src='${SI_DL}' alt='Download'></a> <a href='${SL_REL}' title='Go to release in GitHub...'><img src='${SI_REL}' alt='Release'></a> <a href='${SL_TAR}' title='Go to Moho® homepage...'><img src='${SI_TAR}' alt='Moho'></a></td></tr></table>"
 
 		# 💉 Surgical Injection (Direct & clean)
 		sed -i "\|$H_START|,\|$H_END|{ \|$H_START|b; \|$H_END|b; d; }" "$TARGET_README" # 1. Delete content between marker
@@ -233,7 +233,7 @@ for script_id in $PACKS; do
 			v_dsc=$(echo "$header" | grep "${VARS[DSC]}" | sed -n "${VAREXS[S]}") || v_dsc=""
 			if [[ -z "$v_dsc" ]]; then # Description fallback
 				if [[ "$script_id" == "$CORE" ]]; then
-					v_dsc="Essential shared resources and core modules required for the [Lost Scripts](https://lost-scripts.github.io/ 'Go to Lost Scripts&trade; site...')&trade; project to work with [MOHO](https://moho.lostmarble.com/ 'Go to Moho&reg; homepage...')® Animation Software.&emsp;"
+					v_dsc="Essential shared resources and core modules required for the <a href='https://lost-scripts.github.io/' title='Go to Lost Scripts&trade; website...'>Lost Scripts</a>&trade; project to work with <a href='https://moho.lostmarble.com/' title='Go to Moho&reg; homepage...'>MOHO</a> Animation Software.&emsp;"
 				else
 					v_dsc="Lost Script *$v_name* for [MOHO](https://moho.lostmarble.com/ 'Go to Moho&reg; homepage...')® Animation Software."
 				fi
@@ -297,11 +297,7 @@ CAT_START='<!-- CATALOG_START -->'
 CAT_END='<!-- CATALOG_END -->'
 
 # 4a. Table Header (Remote icons so they're always visible)
-cat <<EOF > "$TEMP_TABLE"
-
-| Icon | &nbsp;&nbsp;Name&nbsp;&nbsp; | Description | <span title="Direct Download Links"> 📦 </span> |
-| :--: | ---------------------------- | ----------- | :---------------------------------------------: |
-EOF
+echo "<table width='100%'><thead><tr><th align='center'>Icon</th><th align='left'>Name</th><th align='left'>Description</th><th align='center' title='Direct Download Links'>📦</th></tr></thead><tbody>" > "$TEMP_TABLE"
 
 # 4b. Reorder and Process Collected Data
 if [ -s "$CATALOG_DATA" ]; then
@@ -344,17 +340,27 @@ if [ -s "$CATALOG_DATA" ]; then
 		PICTURE_TAG="<picture><source media='(prefers-color-scheme: dark)' srcset='${ICON_DARK}'><source media='(prefers-color-scheme: light)' srcset='${ICON_LIGHT}'><img src='${ICON_MAIN}' width='48' alt='Icon'></picture>"
 
 		# --- ✨ DISPLAY CUSTOMIZATION (Core vs. Others)
-		STAGE_LABEL=""; [[ "$stg" != "STABLE" ]] && STAGE_LABEL="**<sub><ins>$stg</ins></sub>**" # 🎨 Inject the Stage here if it's not STABLE
+		STAGE_LABEL=""; [[ "$stg" != "STABLE" ]] && STAGE_LABEL="<strong><sub><ins>$stg</ins></sub></strong>" # 🎨 Inject the Stage here if it's not STABLE
 		if [[ "$id" == "$CORE" ]]; then
-			DISPLAY_NAME="[***LS&nbsp;<sup>Core</sup>***](${PACK_LNK} 'Go to \"$CORE\" repo...') "
-			DISPLAY_DESC="***<sup>${dsc}</sup>***<br><sub>𝓲 </sub><em><sub title='Build: $bld'>v$ver</sub> ${STAGE_LABEL}<sub> For Moho $tar</sub></em>"
+			DISPLAY_NAME="<a href='${PACK_LNK}' title='Go to \"$CORE\" repo...'><strong><em>LS&nbsp;<sup>Core</sup></em></strong></a>"
+			DISPLAY_DESC="<strong><em><sup>${dsc}</sup></em></strong><br><sub>𝓲 </sub><em><sub title='Build: $bld'>v$ver</sub> ${STAGE_LABEL}<sub> For Moho $tar</sub></em>"
 		else
-			DISPLAY_NAME="[**$name**](${PACK_LNK} 'Go to \"$id\" repo...')"
+			DISPLAY_NAME="<a href='${PACK_LNK}' title='Go to \"$id\" repo...'><strong>$name</strong></a>"
 			DISPLAY_DESC="<sup>$dsc</sup><br><sub>𝓲 </sub><em><sub title='Build: $bld'>v$ver</sub> ${STAGE_LABEL}<sub> For Moho $tar</sub></em>"
 		fi
 
-		echo "| [$PICTURE_TAG](${PACK_LNK} 'Go to \"$id\" repo...') | $DISPLAY_NAME | $DISPLAY_DESC | [![]($ICON_DL)]($url 'Download: ${id}.zip') |" >> "$TEMP_TABLE" # ⏬📥
+		# --- 📝 ROW GENERATION (Atomic HTML)
+		ROW="<tr>
+			<td align='center' valign='middle'><a href='${PACK_LNK}' title='Go to \"$id\" repo...'>$PICTURE_TAG</a></td>
+			<td valign='middle' nowrap>${DISPLAY_NAME}</td>
+			<td valign='middle' width='100%'>${DISPLAY_DESC}</td>
+			<td align='center' valign='middle'><a href='${url}' title='Download: ${id}.zip'><img src='${ICON_DL}' alt='Download'></a></td>
+		</tr>"
+		echo "$ROW" >> "$TEMP_TABLE"
+
+		#echo "| [$PICTURE_TAG](${PACK_LNK} 'Go to \"$id\" repo...') | $DISPLAY_NAME | $DISPLAY_DESC | [![]($ICON_DL)]($url 'Download: ${id}.zip') |" >> "$TEMP_TABLE" # ⏬📥
 	done
+	echo "</tbody></table>" >> "$TEMP_TABLE"
 	echo -e "\n<p align='right'><sub>𝓲 <em>Generated by <strong>${INFO[NAME]}</strong><sup> v${INFO[VERSION]}</sup> @ <code>$(date +'%Y%m%d')</code></em></sub></p>" >> "$TEMP_TABLE"
 fi
 
