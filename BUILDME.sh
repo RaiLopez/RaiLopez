@@ -13,7 +13,7 @@ declare -Ar VAREXS=( [S]='s/.*=[[:space:]]*\(['"'"'"]\)\(.*\)\1\( --.*\)*$/\2/p'
 declare -Ar FORGE=( [BASE]="github.com" [BRAW]="raw.githubusercontent.com" [USER]="RaiLopez" [PREF]="git@github-railopez" ) # URL, contentUrl, username, remotePrefix (SSH Alias), [MONO]="custom-repo" (optional, overrides USER)
 declare -r  CORE="ls"
 declare -r  CORE_DEST="../$CORE"
-declare -r  CORE_INDEX="./docs/ls/index.md" 
+declare -r  CORE_INDEX="./docs/ls/index.md"
 declare -r  DOCSDIR="./docs" # Monorepo's bunker
 declare -r  DISTDIR="_dist" # Specifying a directory implies creating ZIPs at ./docs/id/$DISTDIR (assuming zip.exe & bzip2.dll exist in %ProgramFiles%\Git\usr\bin)
 declare -r  STRIP_YAML=true
@@ -218,35 +218,43 @@ for script_id in $PACKS; do
 	fi
 
 	# --- ⭐ 2.8 STARRED/FEATURED CARD GENERATOR
-	if [[ -n "$STAR_RAW" && ",$STAR_RAW," == *",$script_id,"* ]]; then # Usamos el truco de las comas para coincidencia exacta
+	if [[ -n "$STAR_RAW" && ",$STAR_RAW," == *",$script_id,"* ]]; then
+		# Definimos las rutas para esta tarjeta
 		ST_IMG="https://raw.githubusercontent.com/RaiLopez/${script_id}/main/docs/assets/icon.png"
 		ST_GIT="https://github.com/lost-scripts/${script_id}"
-		ST_DLS="https://img.shields.io/github/downloads/lost-scripts/${script_id}/total.svg?color=yellow"
+		
+		# Formato Tarjeta (Una tabla independiente por cada script)
+		ST_CARD="<table width='100%' border='0' style='border: 1px solid #444; border-radius: 8px; margin-bottom: 10px; padding: 10px;'>
+			<tr>
+				<td align='center' width='80'>
+					<a href='${ST_GIT}'><img src='${ST_IMG}' width='48' class='colorize' alt='Icon'></a>
+				</td>
+				<td valign='middle'>
+					<a href='${ST_GIT}' style='text-decoration:none;'><strong>${v_name}</strong></a><br>
+					<small>${v_dsc}</small>
+				</td>
+				<td align='right' width='120' valign='middle'>
+					<a href='${ST_GIT}'><img src='https://img.shields.io/github/downloads/lost-scripts/${script_id}/total?logo=data:image/svg%2bxml;base64,${ICON_DL_B64}&color=blue&label=' height='20'></a>
+				</td>
+			</tr>
+		</table>"
 
-		ST_ROW="<tr>
-			<td align='center' width='96'><a href='${ST_GIT}'><img src='${ST_IMG}' width='48' class='colorize'></a></td>
-			<td><a href='${ST_GIT}'><b>${v_name}</b></a></td>
-			<td>${v_dsc}</td>
-			<td align='right' nowrap><a href='${ST_GIT}'><img src='https://img.shields.io/github/downloads/lost-scripts/${script_id}/total?logo=data:image/svg%2bxml;base64,${ICON_DL_B64}&color=blue&label=' height='20'></a></td>
-		</tr>"
-		echo "$ST_ROW" >> "$STAR_TBL_TMP"
+		echo "$ST_CARD" >> "$STAR_TBL_TMP"
 	fi
 
-	if [[ "$script_id" == "$CORE" && -s "$STAR_TBL_TMP" ]]; then # Single injection (Only when we reach the Core)
-		# 2.8a Envolvemos en tabla con cabecera (opcional)
-		echo "<table id='catalog' class='card' width='100%' border='2'>$TBL_HEAD" > "$STAR_TBL_TMP"
-		FINAL_STAR_HTML="<table id='catalog' class='card' width='100%' border='2'>$TBL_HEAD$(cat "$STAR_TBL_TMP")</tbody></table>"
-		
-		# 2.8b Inyección en el README del Core (dentro de TARGET_DIR para que Git lo vea)
+	# 💉 INYECCIÓN ÚNICA (Solo cuando el bucle llega al Core)
+	if [[ "$script_id" == "$CORE" && -s "$STAR_TBL_TMP" ]]; then
 		CORE_READ="$TARGET_DIR/docs/README.md"
+		# Usamos variables locales para las marcas (evita que el renderizado las borre)
+
 		if [ -f "$CORE_READ" ] && grep -q "$S_START" "$CORE_READ"; then
-			# Vaciamos e inyectamos
+			# Vaciamos el contenido previo entre marcas
 			sed -i "/$S_START/,/$S_END/{ /$S_START/b; /$S_END/b; d }" "$CORE_READ"
-			sed -i "/$S_START/r /dev/stdin" "$CORE_READ" <<< "$FINAL_STAR_HTML"
-			# ✨ Limpieza final para el README del remoto
+			# Inyectamos el contenido del temporal
+			sed -i "/$S_START/r /dev/stdin" "$CORE_READ" <<< "$(cat "$STAR_TBL_TMP")"
+			# Limpieza: Borramos las marcas para que el README público sea profesional
 			sed -i "/$S_START/d; /$S_END/d" "$CORE_READ"
-			
-			echo "    ⭐ Featured Scripts injected & cleaned in Core's README."
+			echo "    ⭐ Featured Cards injected & cleaned in Core's README."
 		fi
 	fi
 
@@ -413,7 +421,7 @@ fi
 
 # 3d. Final Cleanup
 rm -f "$CAT_TMP_TBL" "$CATALOG_DATA"
-rm -f "$STAR_TBL_TMP"
+[ -f "$STAR_TBL_TMP" ] && rm -f "$STAR_TBL_TMP"
 
 # 4. ENDING! RESTART/SHELL/EXIT?
 echo -e "--- 🏁 ${T_B}DONE!${T_N} (In: $(printf '%01d:%02d' $((SECONDS/60)) $((SECONDS%60))) | Total: ${REPORT[TOT]} | Local: ${REPORT[LOC]} | Public: ${REPORT[PUB]} | $([[ ${REPORT[ISS]} -gt 0 ]] && echo -ne "${T_R}" || echo -ne "${T_N}")Issues: ${REPORT[ISS]}${T_N})"
