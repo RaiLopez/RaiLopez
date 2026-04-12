@@ -144,8 +144,8 @@ for script_id in $PACKS; do
 		else
 			v_dsc="Lost Script <em>$v_name</em> for <a href='https://moho.lostmarble.com/' title='Go to Moho&reg; homepage...'>MOHO</a> Animation Software."
 		fi
-		v_desc_plain=$(echo "$v_dsc" | sed 's/<[^>]*>//g')
 	fi
+	v_desc_plain=$(echo "$v_dsc" | sed 's/<[^>]*>//g')
 
 	# --- 📄 2.5. HYBRID DOCS PROMOTION & FALLBACKS
 	if [[ "$script_id" == "$CORE" ]]; then
