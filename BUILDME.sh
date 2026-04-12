@@ -130,7 +130,7 @@ for script_id in $PACKS; do
 	fi
 
 	# --- 👀 2.4. UNIVERSAL METADATA COLLECTION
-	v_name=$(echo "$script_id" | sed 's/ls_//g; s/_/ /g' | awk '{for(i=1;i<=NF;i++)sub(/./,toupper(substr($i,1,1)),$i)}1'); v_name="${v_name:-${script_id:-Unknown}}"
+	v_name=$(echo "$script_id" | sed 's/ls_//g; s/_/ /g' | awk '{for(i=1;i<=NF;i++)sub(/./,toupper(substr($i,1,1)),$i)}1'); v_name="${v_name:-${script_id:-Unknown}}"; [[ "$script_id" == "$CORE" ]] && v_name="${v_name^^}"
 	if [[ -n "$header" ]]; then # Extract everything in one go so it's available afterwards
 		v_ver=$(echo "$header" | grep "${VARS[VER]}" | sed -n "${VAREXS[S]}") || v_ver="0.0.0"
 		v_stg=$(echo "$header" | grep "${VARS[STG]}" | sed -n "${VAREXS[S]}") || v_stg="STABLE"; v_stg="${v_stg// /}" # Clean spaces for safety reasons
