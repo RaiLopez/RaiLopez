@@ -14,9 +14,9 @@ declare -Ar FORGE=( [BASE]="github.com" [BRAW]="raw.githubusercontent.com" [USER
 declare -r  CORE="ls"
 declare -r  CORE_DEST="../$CORE"
 declare -r  CORE_INDEX="./docs/ls/index.md" 
-declare -r  STRIP_YAML=true
 declare -r  DOCSDIR="./docs" # Monorepo's bunker
 declare -r  DISTDIR="_dist" # Specifying a directory implies creating ZIPs at ./docs/id/$DISTDIR (assuming zip.exe & bzip2.dll exist in %ProgramFiles%\Git\usr\bin)
+declare -r  STRIP_YAML=true
 declare -ar ZIPIGNORE=( "README.md" "LICENSE" "docs" "docs/*" "*/docs/*" "*.zip" )
 declare -ar CATALOG_EXCLUDE=("DRAFT" "HIDDEN" "ALPHA" "PRIVATE" "LEGACY")
 declare --  CATALOG_DATA=$(mktemp)
@@ -70,11 +70,13 @@ PACKS="$PACKS_TEMP $CORE" # The final list (first the packs, and lastly, the Cor
 MONOREPO="${FORGE[MONO]:-${FORGE[USER]}}" # CUSTOM or USER (Same name as user by default)
 MONO_MSG=$(git log -1 --pretty=%B | tr -d '\r' | head -n 1)
 MONO_HASH=$(git rev-parse --short HEAD)
+MONO_READ="./docs/README.md"
 URL_BASE="https://${FORGE[BASE]}/${FORGE[USER]}"
 URL_RAW="https://${FORGE[BRAW]}/${FORGE[USER]}"
 URL_RAW_CORE="${URL_RAW}/${CORE}/main/ScriptResources/${CORE}"
 URL_RAW_MONO="https://${FORGE[BRAW]}/${FORGE[USER]}/${MONOREPO}/refs/heads/main"
-STAR_TBL_TMP=$(mktemp); STAR_RAW=""
+TBL_HEAD="<table id='catalog' width='100%' border='0'><thead><tr><th align='center' width='96'>Icon</th><th align='center' width='120'>Name</th><th align='center' width='1920'>Description</th><th align='center' title='Direct Download Links'>📦</th></tr></thead><tbody>"
+STAR_TBL_TMP=$(mktemp); STAR_RAW=""; S_START="<!-- STARRED_START -->"; S_END="<!-- STARRED_END -->"
 if [[ -f "$CORE_INDEX" ]]; then
 	STAR_RAW=$(head -n 25 "$CORE_INDEX" | grep "Starred:" | sed 's/.*\[\(.*\)\].*/\1/' | tr -d ' ')
 fi
@@ -221,6 +223,8 @@ for script_id in $PACKS; do
 		ST_GIT="https://github.com/lost-scripts/${script_id}"
 		ST_DLS="https://img.shields.io/github/downloads/lost-scripts/${script_id}/total.svg?color=yellow"
 
+		echo "$TBL_HEAD" > "$STAR_TBL_TMP"
+
 		#ST_ROW="<tr><td align='center' width='96'><img src='${ST_IMG}' width='48' class='colorize'></td><td><b>${v_name}</b></td><td>${v_dsc_plain}</td><td align='right' nowrap><a href='${ST_GIT}' title='Go to repository...'><img src='${ST_DLS}' height='20'></a></td></tr>"
 		ST_ROW="<tr>
 			<td align='center' width='96'><a href='${ST_GIT}'><img src='${ST_IMG}' width='48' class='colorize'></a></td>
@@ -228,7 +232,6 @@ for script_id in $PACKS; do
 			<td>${v_dsc}</td>
 			<td align='right' nowrap><a href='${ST_GIT}'><img src='https://img.shields.io/github/downloads/lost-scripts/${script_id}/total?logo=data:image/svg%2bxml;base64,${ICON_DL_B64}&color=blue&label=' height='20'></a></td>
 		</tr>"
-		
 		echo "$ST_ROW" >> "$STAR_TBL_TMP"
 	fi
 
@@ -237,15 +240,13 @@ for script_id in $PACKS; do
 		FINAL_STAR_HTML="<table width='100%' border='2' class='card'>$(cat "$STAR_TBL_TMP")</table>"
 		
 		# 2.8b Inyección en el README del Core (dentro de TARGET_DIR para que Git lo vea)
-		TARGET_README="$TARGET_DIR/docs/README.md"
-		S_START="<!-- STARRED_START -->"; S_END="<!-- STARRED_END -->"
-
-		if [ -f "$TARGET_README" ] && grep -q "$S_START" "$TARGET_README"; then
+		CORE_READ="$TARGET_DIR/docs/README.md"
+		if [ -f "$CORE_READ" ] && grep -q "$S_START" "$CORE_READ"; then
 			# Vaciamos e inyectamos
-			sed -i "/$S_START/,/$S_END/{ /$S_START/b; /$S_END/b; d }" "$TARGET_README"
-			sed -i "/$S_START/r /dev/stdin" "$TARGET_README" <<< "$FINAL_STAR_HTML"
+			sed -i "/$S_START/,/$S_END/{ /$S_START/b; /$S_END/b; d }" "$CORE_READ"
+			sed -i "/$S_START/r /dev/stdin" "$CORE_READ" <<< "$FINAL_STAR_HTML"
 			# ✨ Limpieza final para el README del remoto
-			sed -i "/$S_START/d; /$S_END/d" "$TARGET_README"
+			sed -i "/$S_START/d; /$S_END/d" "$CORE_READ"
 			
 			echo "    ⭐ Featured Scripts injected & cleaned in Core's README."
 		fi
@@ -333,10 +334,9 @@ done
 # --- 📃 3. GENERATING CATALOG
 echo "--- 📝 Updating Monorepo's Catalog ---"
 CAT_TMP_TBL=$(mktemp); CAT_START='<!-- CATALOG_START -->'; CAT_END='<!-- CATALOG_END -->'
-OUTPUT_FILE="./docs/README.md"
 
 # 3a. Table Header (Remote icons so they're always visible)
-echo "<table id='catalog' width='100%' border='0'><thead><tr><th align='center' width='96'>Icon</th><th align='center' width='120'>Name</th><th align='center' width='1920'>Description</th><th align='center' title='Direct Download Links'>📦</th></tr></thead><tbody>" > "$CAT_TMP_TBL"
+echo "$TBL_HEAD" > "$CAT_TMP_TBL"
 
 # 3b. Reorder and Process Collected Data
 if [ -s "$CATALOG_DATA" ]; then
@@ -402,15 +402,15 @@ if [ -s "$CATALOG_DATA" ]; then
 fi
 
 # 3c. Surgical Injection (Shielded Version)
-if grep -q "$CAT_START" "$OUTPUT_FILE" && grep -q "$CAT_END" "$OUTPUT_FILE"; then # Both markers are present
-	sed -i "\|$CAT_START|,\|$CAT_END|{ \|$CAT_START|b; \|$CAT_END|b; d; }" "$OUTPUT_FILE" # First, we delete ONLY what is strictly BETWEEN the markers
-	sed -i "\|$CAT_START|r $CAT_TMP_TBL" "$OUTPUT_FILE" # We insert the content immediately after the start marker
+if grep -q "$CAT_START" "$MONO_READ" && grep -q "$CAT_END" "$MONO_READ"; then # Both markers are present
+	sed -i "\|$CAT_START|,\|$CAT_END|{ \|$CAT_START|b; \|$CAT_END|b; d; }" "$MONO_READ" # First, we delete ONLY what is strictly BETWEEN the markers
+	sed -i "\|$CAT_START|r $CAT_TMP_TBL" "$MONO_READ" # We insert the content immediately after the start marker
 	echo "--- ✅ Catalog Injected Between Markers ---"
 else
 	echo -e "--- ⚠️  ${T_R} Warning:${T_N} Markers missing in README (appending at end to prevent data loss)"; ((++REPORT[ISS]))  # Nothing gets deleted, just added at the end
 	{
 		echo -e "\n$CAT_START"; cat "$CAT_TMP_TBL"; echo -e "$CAT_END\n"
-	} >> "$OUTPUT_FILE"
+	} >> "$MONO_READ"
 fi
 
 # 3d. Final Cleanup
