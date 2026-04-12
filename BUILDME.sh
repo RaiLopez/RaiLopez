@@ -17,7 +17,7 @@ declare -r  STRIP_YAML=true
 declare -r  DOCSDIR="./docs" # Monorepo's bunker
 declare -r  DISTDIR="_dist" # Specifying a directory implies creating ZIPs at ./docs/id/$DISTDIR (assuming zip.exe & bzip2.dll exist in %ProgramFiles%\Git\usr\bin)
 declare -ar ZIPIGNORE=( "README.md" "LICENSE" "docs" "docs/*" "*/docs/*" "*.zip" )
-declare -ar CATALOG_EXCLUDE=("DRAFT" "ALPHA" "PRIVATE" "LEGACY")
+declare -ar CATALOG_EXCLUDE=("DRAFT" "HIDDEN" "ALPHA" "PRIVATE" "LEGACY")
 declare --  CATALOG_DATA=$(mktemp)
 declare --  PUBLISH=false # Requires the script folder has a repo and 'origin' remote
 declare -A  REPORT=( [DUR]=0 [TOT]=0 [LOC]=0 [PUB]=0 [ISS]=0)
@@ -305,7 +305,7 @@ if [ -s "$CATALOG_DATA" ]; then
 		for skip in "${CATALOG_EXCLUDE[@]}"; do
 			[[ "$stg" == "$skip" ]] && is_excluded=true && break
 		done
-		[[ "$is_excluded" == true ]] && [[ "$id" != "$CORE" ]] && continue
+		[[ "$is_excluded" == true ]] && continue # BAK: `[[ "$is_excluded" == true ]] && [[ "$id" != "$CORE" ]] && continue``
 
 		# --- 🔍 TRIPLE ICON/FALLBACK LOGIC (Hybrid structure)
 		PACK_LNK="${URL_BASE}/${id}/"
