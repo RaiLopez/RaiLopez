@@ -216,14 +216,33 @@ for script_id in $PACKS; do
 	fi
 
 	# --- ⭐ 2.8 STARRED/FEATURED CARD GENERATOR
-	if [[ -n "$STAR_RAW" && ",$STAR_RAW," == *",$script_id,"* ]]; then
+	if [[ -n "$STAR_RAW" && ",$STAR_RAW," == *",$script_id,"* ]]; then # Usamos el truco de las comas para coincidencia exacta
 		ST_IMG="https://raw.githubusercontent.com/RaiLopez/${script_id}/main/docs/assets/icon.png"
 		ST_GIT="https://github.com/lost-scripts/${script_id}"
 		ST_DLS="https://img.shields.io/github/downloads/lost-scripts/${script_id}/total.svg?color=yellow"
 
-		ST_ROW="<tr><td align='center' width='96'><img src='${ST_IMG}' width='48' class='colorize'></td><td><b>${v_name}</b>: ${v_desc_plain}</td><td align='right' nowrap><a href='${ST_GIT}' title='Go to repository...'><img src='${ST_DLS}' height='20'></a></td></tr>"
-
+		ST_ROW="<tr><td align='center' width='96'><img src='${ST_IMG}' width='48' class='colorize'></td><td><b>${v_name}</b></td><td>${v_desc_plain}</td><td align='right' nowrap><a href='${ST_GIT}' title='Go to repository...'><img src='${ST_DLS}' height='20'></a></td></tr>"
 		echo "$ST_ROW" >> "$STAR_TBL_TMP"
+	fi
+
+	# 💉 INYECCIÓN ÚNICA (Solo cuando llegamos al Core)
+	if [[ "$script_id" == "$CORE" && -s "$STAR_TBL_TMP" ]]; then
+		# 4.1. Envolvemos en tabla con cabecera (opcional)
+		FINAL_STAR_HTML="<table width='100%' border='2' class='card'>$(cat "$STAR_TBL_TMP")</table>"
+		
+		# 4.2. Inyección en el README del Core (dentro de TARGET_DIR para que Git lo vea)
+		TARGET_README="$TARGET_DIR/docs/README.md"
+		S_START="<!-- STARRED_START -->"; S_END="<!-- STARRED_END -->"
+
+		if [ -f "$TARGET_README" ] && grep -q "$S_START" "$TARGET_README"; then
+			# Vaciamos e inyectamos
+			sed -i "/$S_START/,/$S_END/{ /$S_START/b; /$S_END/b; d }" "$TARGET_README"
+			sed -i "/$S_START/r /dev/stdin" "$TARGET_README" <<< "$FINAL_STAR_HTML"
+			# ✨ Limpieza final para el README del remoto
+			sed -i "/$S_START/d; /$S_END/d" "$TARGET_README"
+			
+			echo "    ⭐ Featured Scripts injected & cleaned in Core's README."
+		fi
 	fi
 
 	# --- 🎁 2.9. SCRIPT ZIP GENERATION (Optional & Local)
@@ -388,29 +407,11 @@ else
 	} >> "$OUTPUT_FILE"
 fi
 
-# --- 🌟 4. GENERATING STARRED LIST
-if [[ -s "$STAR_TBL_TMP" ]]; then
-	# 4.1. Envolvemos en tabla
-	FINAL_STAR_HTML="<table width='100%' border='2' class='card'>$(cat "$STAR_TBL_TMP")</table>"
-	
-	# 4.2. Inyección con sed (solo si existen las marcas)
-	TARGET_README="../ls/docs/README.md"
-	S_START="<!-- STARRED_START -->"; S_END="<!-- STARRED_END -->" # Definimos las marcas en variables para que no se pierdan en el renderizado
-
-	if grep -q "$S_START" "$TARGET_README"; then
-		# Vaciamos lo que hubiera entre las marcas
-		sed -i "/$S_START/,/$S_END/{ /$S_START/b; /$S_END/b; d }" "$TARGET_README"
-		# Inyectamos el nuevo contenido justo debajo de la marca de inicio
-		sed -i "/$S_START/r /dev/stdin" "$TARGET_README" <<< "$FINAL_STAR_HTML"
-		echo "    ⭐ Featured Scripts updated in Core's README."
-	fi
-fi
-
-# 5. Final Cleanup
+# 3d. Final Cleanup
 rm -f "$CAT_TMP_TBL" "$CATALOG_DATA"
 rm -f "$STAR_TBL_TMP"
 
-# 6. ENDING! RESTART/SHELL/EXIT?
+# 4. ENDING! RESTART/SHELL/EXIT?
 echo -e "--- 🏁 ${T_B}DONE!${T_N} (In: $(printf '%01d:%02d' $((SECONDS/60)) $((SECONDS%60))) | Total: ${REPORT[TOT]} | Local: ${REPORT[LOC]} | Public: ${REPORT[PUB]} | $([[ ${REPORT[ISS]} -gt 0 ]] && echo -ne "${T_R}" || echo -ne "${T_N}")Issues: ${REPORT[ISS]}${T_N})"
 echo -ne "--- ？ ${T_S}R${T_N}estart? (${T_S}Y${T_N}es/${T_S}S${T_N}hell/${T_S}Any${T_N} to exit): "; read -n 1 action; echo ""
 if [[ "$action" =~ ^[yYrR]$ ]]; then
