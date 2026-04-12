@@ -100,7 +100,7 @@ for script_id in $PACKS; do
 		fi
 	fi
 
-	# --- 🔍 2.3 INJECT DEPENDENCIES & METADATA (The "Smart Search" Logic)
+	# --- 🔍 2.3 INJECT DEPENDENCIES & METADATA EXTRACTION (The "Smart Search" Logic)
 	header="" # Security reset
 	if [[ "$script_id" == "$CORE" ]]; then
 		MASTER_CORE="./Utility/ls_utilities.lua"
@@ -129,6 +129,13 @@ for script_id in $PACKS; do
 				break # Main file found; exiting the loop...
 			fi
 		done < <(find "$TARGET_DIR" -name "${script_id}.lua" -type f)
+	fi
+	if [[ -n "$header" ]]; then # Extract everything in one go so it's available afterwards
+		v_ver=$(echo "$header" | grep "${VARS[VER]}" | sed -n "${VAREXS[S]}") || v_ver="0.0.0"
+		v_stg=$(echo "$header" | grep "${VARS[STG]}" | sed -n "${VAREXS[S]}") || v_stg="STABLE"; v_stg="${v_stg// /}" # Clean spaces for safety reasons
+		v_bld=$(echo "$header" | grep "${VARS[BLD]}" | sed -n "${VAREXS[S]}") || v_bld="N/D"
+		v_tar=$(echo "$header" | grep "${VARS[TAR]}" | sed -n "${VAREXS[S]}") || v_tar=""
+		v_dsc=$(echo "$header" | grep "${VARS[DSC]}" | sed -n "${VAREXS[S]}") || v_dsc=""
 	fi
 
 	# --- 📄 2.4 HYBRID DOCS PROMOTION & FALLBACKS
@@ -181,6 +188,7 @@ for script_id in $PACKS; do
 		TA_LNK="https://moho.lostmarble.com/"
 		TA_WID=""; [[ "$v_stg" != "HIDDEN" ]] && TA_WID="<a href='${TA_LNK}' title='Go to Moho® homepage...'><img src='${TA_SHI}' alt='Moho'></a> "
 
+		echo "⚠ DEBUG: script=$script_id | stage=[$v_stg] | widget_size=${#DL_WID}"
 		# 🏗️ Build Table (Single line for SED safety)
 		HEADER_HTML="<table id='top' width='100%' border='0'><tr><td align='left' valign='middle' width='120'><picture><source media='(prefers-color-scheme: dark)' srcset='${AS_DIR}/icon_dark.png'><source media='(prefers-color-scheme: light)' srcset='${AS_DIR}/icon_light.png'><img src='${AS_DIR}/icon.png' width='48' alt='Icon' class='colorize'></picture></td><td align='right' valign='middle' width='1920' nowrap>${DL_WID} ${RE_WID} ${TA_WID}</td></tr></table>"
 
@@ -223,11 +231,6 @@ for script_id in $PACKS; do
 		if [ "$HAS_REMOTE" = true ] || [[ "$script_id" == "$CORE" ]]; then
 			# B1. COLLECTION (Whenever there is a remote, publishing or not)
 			v_name=$(echo "$script_id" | sed 's/ls_//g; s/_/ /g' | awk '{for(i=1;i<=NF;i++)sub(/./,toupper(substr($i,1,1)),$i)}1')
-			v_ver=$(echo "$header" | grep "${VARS[VER]}" | sed -n "${VAREXS[S]}") || v_ver="0.0.0"
-			v_stg=$(echo "$header" | grep "${VARS[STG]}" | sed -n "${VAREXS[S]}") || v_stg="STABLE"
-			v_bld=$(echo "$header" | grep "${VARS[BLD]}" | sed -n "${VAREXS[S]}") || v_bld="N/D"
-			v_tar=$(echo "$header" | grep "${VARS[TAR]}" | sed -n "${VAREXS[S]}") || v_tar=""
-			v_dsc=$(echo "$header" | grep "${VARS[DSC]}" | sed -n "${VAREXS[S]}") || v_dsc=""
 			if [[ -z "$v_dsc" ]]; then # Description fallback
 				if [[ "$script_id" == "$CORE" ]]; then
 					v_dsc="Essential shared resources and core modules required for the <a href='https://lost-scripts.github.io/' title='Go to Lost Scripts&trade; website...'>Lost Scripts</a>&trade; project to work with <a href='https://moho.lostmarble.com/' title='Go to Moho&reg; homepage...'>MOHO</a> Animation Software."
