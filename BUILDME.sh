@@ -305,7 +305,7 @@ for script_id in $PACKS; do
 	fi
 done
 
-# 3. GENERATING CATALOG
+# --- 📃 3. GENERATING CATALOG
 echo "--- 📝 Updating Monorepo's Catalog ---"
 CAT_TMP_TBL=$(mktemp); CAT_START='<!-- CATALOG_START -->'; CAT_END='<!-- CATALOG_END -->'
 OUTPUT_FILE="./docs/README.md"
@@ -388,10 +388,29 @@ else
 	} >> "$OUTPUT_FILE"
 fi
 
-# 3d. Final Cleanup
-rm -f "$CAT_TMP_TBL" "$CATALOG_DATA"
+# --- 🌟 4. GENERATING STARRED LIST
+if [[ -s "$STAR_TBL_TMP" ]]; then
+	# 4.1. Envolvemos en tabla
+	FINAL_STAR_HTML="<table width='100%' border='2' class='card'>$(cat "$STAR_TBL_TMP")</table>"
+	
+	# 4.2. Inyección con sed (solo si existen las marcas)
+	TARGET_README="../ls/docs/README.md"
+	S_START="<!-- STARRED_START -->"; S_END="<!-- STARRED_END -->" # Definimos las marcas en variables para que no se pierdan en el renderizado
 
-# 4. ENDING! RESTART/SHELL/EXIT?
+	if grep -q "$S_START" "$TARGET_README"; then
+		# Vaciamos lo que hubiera entre las marcas
+		sed -i "/$S_START/,/$S_END/{ /$S_START/b; /$S_END/b; d }" "$TARGET_README"
+		# Inyectamos el nuevo contenido justo debajo de la marca de inicio
+		sed -i "/$S_START/r /dev/stdin" "$TARGET_README" <<< "$FINAL_STAR_HTML"
+		echo "    ⭐ Featured Scripts updated in Core's README."
+	fi
+fi
+
+# 5. Final Cleanup
+rm -f "$CAT_TMP_TBL" "$CATALOG_DATA"
+rm -f "$STAR_TBL_TMP"
+
+# 6. ENDING! RESTART/SHELL/EXIT?
 echo -e "--- 🏁 ${T_B}DONE!${T_N} (In: $(printf '%01d:%02d' $((SECONDS/60)) $((SECONDS%60))) | Total: ${REPORT[TOT]} | Local: ${REPORT[LOC]} | Public: ${REPORT[PUB]} | $([[ ${REPORT[ISS]} -gt 0 ]] && echo -ne "${T_R}" || echo -ne "${T_N}")Issues: ${REPORT[ISS]}${T_N})"
 echo -ne "--- ？ ${T_S}R${T_N}estart? (${T_S}Y${T_N}es/${T_S}S${T_N}hell/${T_S}Any${T_N} to exit): "; read -n 1 action; echo ""
 if [[ "$action" =~ ^[yYrR]$ ]]; then
