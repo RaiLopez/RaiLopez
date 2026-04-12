@@ -8,6 +8,7 @@ ScriptBuild = "20260103-1852"
 ScriptVersion = "0.4.2"
 ScriptStage = "BETA"
 ScriptTarget = "14.3+ Pro"
+ScriptType = "Window"
 ScriptDep = {"Utility\ls_utilities.lua", "Modules/ls.lua"}
 ScriptDesc = "Persistent shape palette plus helpers for better Moho&reg; vector/s management." -- ⚠ AVOID UNICODE! (Use HTML entities)
 

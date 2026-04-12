@@ -6,6 +6,7 @@ ScriptName = "LS_Wiggle"
 ScriptBirth = "20231022-0415"
 ScriptBuild = "20251023-0011"
 ScriptTarget = "14.4 Pro"
+ScriptType = "Window"
 ScriptDep={"Utility/ls_other.lua","Modules/ls_modules.lua"}
 
 -- **************************************************

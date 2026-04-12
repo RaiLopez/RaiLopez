@@ -7,6 +7,7 @@ ScriptBirth = "20220918-0248"
 ScriptBuild = "20260103-1852"
 ScriptVersion = "0.0.1"
 ScriptStage = "BETA"
+ScriptType = "Embedded"
 ScriptDep = {"Modules/ls_m.lua"}
 
 -- **************************************************

@@ -6,6 +6,7 @@ Params:
   Version: 0.0.1
   Build: 20250114-0005
   Flags: [UPD!] # NEW! UPD! WIP! TODO BETA ALPHA
+  Starred: [ls_shapes, ls_wiggle] # The chosen ones for glory
 Tags: [utilities, resources]
 Date: 2023-10-17T4:24:43
 LastMod: 2024-02-09T00:54:00
@@ -96,7 +97,7 @@ More than user-facing features, *LS<sub><sup><sup> Core</sup></sup></sub>* works
 
 <br>
 
-## *Download & Install*
+## *Installation*
 
 Starting from you have already unzipped the downloaded file, you actually have two different installation methods...
 

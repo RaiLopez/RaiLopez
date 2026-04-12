@@ -5,7 +5,7 @@ set -euo pipefail; trap 'debugger $LINENO "$BASH_COMMAND"' ERR # Debug Mode (Com
 #export PS4='+ ${BASH_SOURCE}:${LINENO}: ${FUNCNAME[0]:+${FUNCNAME[0]}(): }' # Uncomment for detailed/alternative debugging with 'bash -x ./BUILDME.sh'
 
 # ⚙ CONFIGURATION
-declare -Ar INFO=( [NAME]="Lost Builder" [VERSION]="1.7.2" [CREATOR]="Rai López" [DESC]="Lost Project's Development Helper" )
+declare -Ar INFO=( [NAME]="Lost Builder" [VERSION]="1.7.3" [CREATOR]="Rai López" [DESC]="Lost Project's Development Helper" )
 declare -ar INCLUDE=( "Embed" "Menu" "Modules" "ScriptResources" "Smart" "Tool" "Utility" "LICENSE" ) # Note: Make sure the element doesn't remain orphaned in Core if you remove it from here!
 declare -ar SYNC=( "Modules" "Tool" "Utility" "ScriptResources" "Menu" "Embed" "Smart" ) # Pack folders for syncing...
 declare -Ar VARS=( [DEP]="ScriptDep" [VER]="ScriptVersion" [BLD]="ScriptBuild" [STG]="ScriptStage" [DSC]="ScriptDesc" [TAR]="ScriptTarget" ) # Script header variables (if "ScriptDep" is present in a .lua file, it's considered a pack!)
@@ -129,7 +129,7 @@ for script_id in $PACKS; do
 		done < <(find "$TARGET_DIR" -name "${script_id}.lua" -type f)
 	fi
 
-	# --- 👀 2.4. UNIVERSAL METADATA COLLECTION
+	# --- 🥢 2.4. UNIVERSAL METADATA COLLECTION
 	v_name=$(echo "$script_id" | sed 's/ls_//g; s/_/ /g' | awk '{for(i=1;i<=NF;i++)sub(/./,toupper(substr($i,1,1)),$i)}1'); v_name="${v_name:-${script_id:-Unknown}}"; [[ "$script_id" == "$CORE" ]] && v_name="${v_name^^}"
 	if [[ -n "$header" ]]; then # Extract everything in one go so it's available afterwards
 		v_ver=$(echo "$header" | grep "${VARS[VER]}" | sed -n "${VAREXS[S]}") || v_ver="0.0.0"
@@ -145,7 +145,7 @@ for script_id in $PACKS; do
 			v_dsc="Lost Script <em>$v_name</em> for <a href='https://moho.lostmarble.com/' title='Go to Moho&reg; homepage...'>MOHO</a> Animation Software."
 		fi
 	fi
-	v_desc_plain=$(echo "$v_dsc" | sed 's/<[^>]*>//g')
+	v_desc_plain=$(echo "$v_dsc" | sed 's/<[^>]*>//g') # Provide an HTML-free description
 
 	# --- 📄 2.5. HYBRID DOCS PROMOTION & FALLBACKS
 	if [[ "$script_id" == "$CORE" ]]; then
@@ -179,10 +179,10 @@ for script_id in $PACKS; do
 	find "$TARGET_DIR" -type d -empty -not -path "*/.git*" -delete 2>/dev/null || true
 
 	# --- 🖼️ 2.7. HEADER INJECTION (Per-Pack basis)
-	TARGET_README="$TARGET_DIR/docs/README.md" # Note: 2.4 already renamed index to README
+	TARGET_FILE="$TARGET_DIR/docs/README.md" # Note: 2.4 already renamed index to README
 	H_START='<!-- HEADER_START -->'; H_END='<!-- HEADER_END -->'
 
-	if [ -f "$TARGET_README" ] && grep -q "$H_START" "$TARGET_README" && grep -q "$H_END" "$TARGET_README"; then
+	if [ -f "$TARGET_FILE" ] && grep -q "$H_START" "$TARGET_FILE" && grep -q "$H_END" "$TARGET_FILE"; then
 		# 🎨 Assets & Shields
 		DISPLAY_VER="$v_ver"; [[ "$v_stg" != "STABLE" ]] && DISPLAY_VER="${v_ver}-${v_stg}"
 		SAFE_TAR="${v_tar// /_}"
@@ -201,11 +201,11 @@ for script_id in $PACKS; do
 		HEADER_HTML="<table id='top' width='100%' border='0'><tr><td align='left' valign='middle' width='120'><picture><source media='(prefers-color-scheme: dark)' srcset='${AS_DIR}/icon_dark.png'><source media='(prefers-color-scheme: light)' srcset='${AS_DIR}/icon_light.png'><img src='${AS_DIR}/icon.png' width='48' alt='Icon' title='${v_name}: ${v_desc_plain}' class='colorize'></picture></td><td align='right' valign='middle' width='1920' nowrap>${DL_WID} ${RE_WID} ${TA_WID}</td></tr></table>"
 
 		# 💉 Surgical Injection (Direct & clean)
-		sed -i "\|$H_START|,\|$H_END|{ \|$H_START|b; \|$H_END|b; d; }" "$TARGET_README" # 1. Delete content between marker
-		sed -i "\|$H_START|a $HEADER_HTML" "$TARGET_README" # 2. Append the HTML table right after the START marker
+		sed -i "\|$H_START|,\|$H_END|{ \|$H_START|b; \|$H_END|b; d; }" "$TARGET_FILE" # 1. Delete content between marker
+		sed -i "\|$H_START|a $HEADER_HTML" "$TARGET_FILE" # 2. Append the HTML table right after the START marker
 		
 		# ✨ FINAL CLEANUP: Remove the marks from the final README, where they're no longer needed
-		sed -i "/<!-- HEADER_START -->/d; /<!-- HEADER_END -->/d" "$TARGET_README"
+		sed -i "/<!-- HEADER_START -->/d; /<!-- HEADER_END -->/d" "$TARGET_FILE"
 		
 		echo "    ✅ Header injected & Cleaned: $script_id"
 	fi
@@ -291,12 +291,11 @@ done
 
 # 4. GENERATING CATALOG
 echo "--- 📝 Updating Monorepo's Catalog ---"
-TEMP_TABLE=$(mktemp)
+CAT_TMP_TBL=$(mktemp); CAT_START='<!-- CATALOG_START -->'; CAT_END='<!-- CATALOG_END -->'
 OUTPUT_FILE="./docs/README.md"
-CAT_START='<!-- CATALOG_START -->'; CAT_END='<!-- CATALOG_END -->'
 
 # 4a. Table Header (Remote icons so they're always visible)
-echo "<table id='catalog' width='100%' border='0'><thead><tr><th align='center' width='96'>Icon</th><th align='center' width='120'>Name</th><th align='center' width='1920'>Description</th><th align='center' title='Direct Download Links'>📦</th></tr></thead><tbody>" > "$TEMP_TABLE"
+echo "<table id='catalog' width='100%' border='0'><thead><tr><th align='center' width='96'>Icon</th><th align='center' width='120'>Name</th><th align='center' width='1920'>Description</th><th align='center' title='Direct Download Links'>📦</th></tr></thead><tbody>" > "$CAT_TMP_TBL"
 
 # 4b. Reorder and Process Collected Data
 if [ -s "$CATALOG_DATA" ]; then
@@ -355,26 +354,26 @@ if [ -s "$CATALOG_DATA" ]; then
 			<td valign='middle'>${DISPLAY_DESC}</td>
 			<td valign='middle' align='center'><a href='${url}' title='Download: ${id}.zip'><img src='${ICON_DL}' alt='Download'></a></td>
 		</tr>"
-		echo "$ROW" >> "$TEMP_TABLE"
+		echo "$ROW" >> "$CAT_TMP_TBL"
 	done
-	echo "</tbody></table>" >> "$TEMP_TABLE"
-	echo -e "\n<p align='right'><sub>𝓲 <em>Generated by <strong>${INFO[NAME]}</strong><sup> v${INFO[VERSION]}</sup> @ <code>$(date +'%Y%m%d')</code></em></sub></p>" >> "$TEMP_TABLE"
+	echo "</tbody></table>" >> "$CAT_TMP_TBL"
+	echo -e "\n<p align='right'><sub>𝓲 <em>Generated by <strong>${INFO[NAME]}</strong><sup> v${INFO[VERSION]}</sup> @ <code>$(date +'%Y%m%d')</code></em></sub></p>" >> "$CAT_TMP_TBL"
 fi
 
 # 4c. Surgical Injection (Shielded Version)
 if grep -q "$CAT_START" "$OUTPUT_FILE" && grep -q "$CAT_END" "$OUTPUT_FILE"; then # Both markers are present
 	sed -i "\|$CAT_START|,\|$CAT_END|{ \|$CAT_START|b; \|$CAT_END|b; d; }" "$OUTPUT_FILE" # First, we delete ONLY what is strictly BETWEEN the markers
-	sed -i "\|$CAT_START|r $TEMP_TABLE" "$OUTPUT_FILE" # We insert the content immediately after the start marker
+	sed -i "\|$CAT_START|r $CAT_TMP_TBL" "$OUTPUT_FILE" # We insert the content immediately after the start marker
 	echo "--- ✅ Catalog Injected Between Markers ---"
 else
 	echo -e "--- ⚠️  ${T_R} Warning:${T_N} Markers missing in README (appending at end to prevent data loss)"; ((++REPORT[ISS]))  # Nothing gets deleted, just added at the end
 	{
-		echo -e "\n$CAT_START"; cat "$TEMP_TABLE"; echo -e "$CAT_END\n"
+		echo -e "\n$CAT_START"; cat "$CAT_TMP_TBL"; echo -e "$CAT_END\n"
 	} >> "$OUTPUT_FILE"
 fi
 
 # 4d. Final Cleanup
-rm -f "$TEMP_TABLE" "$CATALOG_DATA"
+rm -f "$CAT_TMP_TBL" "$CATALOG_DATA"
 
 # 5. ENDING! RESTART/SHELL/EXIT?
 echo -e "--- 🏁 ${T_B}DONE!${T_N} (In: $(printf '%01d:%02d' $((SECONDS/60)) $((SECONDS%60))) | Total: ${REPORT[TOT]} | Local: ${REPORT[LOC]} | Public: ${REPORT[PUB]} | $([[ ${REPORT[ISS]} -gt 0 ]] && echo -ne "${T_R}" || echo -ne "${T_N}")Issues: ${REPORT[ISS]}${T_N})"
