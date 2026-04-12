@@ -150,7 +150,8 @@ for script_id in $PACKS; do
 			v_dsc="Lost Script <em>$v_name</em> for <a href='https://moho.lostmarble.com/' title='Go to Moho&reg; homepage...'>MOHO</a> Animation Software."
 		fi
 	fi
-	v_desc_plain=$(echo "$v_dsc" | sed 's/<[^>]*>//g') # Provide an HTML-free description
+	v_dsc_plain=$(echo "$v_dsc" | sed 's/<[^>]*>//g') # Provide an HTML-free description
+	v_stg_warn="$v_ver"; [[ "$v_stg" != "STABLE" ]] && v_stg_warn="${v_ver}-${v_stg}" # E.g. 1.2.0-BETA
 
 	# --- 📄 2.5. HYBRID DOCS PROMOTION & FALLBACKS
 	if [[ "$script_id" == "$CORE" ]]; then
@@ -189,7 +190,6 @@ for script_id in $PACKS; do
 
 	if [ -f "$TARGET_FILE" ] && grep -q "$H_START" "$TARGET_FILE" && grep -q "$H_END" "$TARGET_FILE"; then
 		# 🎨 Assets & Shields
-		DISPLAY_VER="$v_ver"; [[ "$v_stg" != "STABLE" ]] && DISPLAY_VER="${v_ver}-${v_stg}"
 		SAFE_TAR="${v_tar// /_}"
 		AS_DIR="https://${FORGE[BRAW]}/${FORGE[USER]}/${MONOREPO}/refs/heads/main/docs/${script_id}/assets"
 		DL_SHI="https://img.shields.io/github/downloads/${FORGE[USER]}/${script_id}/total?logo=data:image/svg%2bxml;base64,${ICON_DL_B64}&color=blue&label=Download"
@@ -203,7 +203,7 @@ for script_id in $PACKS; do
 		TA_WID="<a href='${TA_LNK}' title='Go to Moho® homepage...'><img src='${TA_SHI}' alt='Moho'></a> "
 
 		# 🏗️ Build Table (Single line for SED safety)
-		HEADER_HTML="<table id='top' width='100%' border='0'><tr><td align='left' valign='middle' width='120'><picture><source media='(prefers-color-scheme: dark)' srcset='${AS_DIR}/icon_dark.png'><source media='(prefers-color-scheme: light)' srcset='${AS_DIR}/icon_light.png'><img src='${AS_DIR}/icon.png' width='48' alt='Icon' title='${v_name}: ${v_desc_plain}' class='colorize'></picture></td><td align='right' valign='middle' width='1920' nowrap>${DL_WID} ${RE_WID} ${TA_WID}</td></tr></table>"
+		HEADER_HTML="<table id='top' width='100%' border='0'><tr><td align='left' valign='middle' width='120'><picture><source media='(prefers-color-scheme: dark)' srcset='${AS_DIR}/icon_dark.png'><source media='(prefers-color-scheme: light)' srcset='${AS_DIR}/icon_light.png'><img src='${AS_DIR}/icon.png' width='48' alt='Icon' title='${v_name}: ${v_dsc_plain}' class='colorize'></picture></td><td align='right' valign='middle' width='1920' nowrap>${DL_WID} ${RE_WID} ${TA_WID}</td></tr></table>"
 
 		# 💉 Surgical Injection (Direct & clean)
 		sed -i "\|$H_START|,\|$H_END|{ \|$H_START|b; \|$H_END|b; d; }" "$TARGET_FILE" # 1. Delete content between marker
@@ -221,16 +221,22 @@ for script_id in $PACKS; do
 		ST_GIT="https://github.com/lost-scripts/${script_id}"
 		ST_DLS="https://img.shields.io/github/downloads/lost-scripts/${script_id}/total.svg?color=yellow"
 
-		ST_ROW="<tr><td align='center' width='96'><img src='${ST_IMG}' width='48' class='colorize'></td><td><b>${v_name}</b></td><td>${v_desc_plain}</td><td align='right' nowrap><a href='${ST_GIT}' title='Go to repository...'><img src='${ST_DLS}' height='20'></a></td></tr>"
+		#ST_ROW="<tr><td align='center' width='96'><img src='${ST_IMG}' width='48' class='colorize'></td><td><b>${v_name}</b></td><td>${v_dsc_plain}</td><td align='right' nowrap><a href='${ST_GIT}' title='Go to repository...'><img src='${ST_DLS}' height='20'></a></td></tr>"
+		ST_ROW="<tr>
+			<td align='center' width='96'><a href='${ST_GIT}'><img src='${ST_IMG}' width='48' class='colorize'></a></td>
+			<td><a href='${ST_GIT}'><b>${v_name}</b></a></td>
+			<td>${v_dsc}</td>
+			<td align='right' nowrap><a href='${ST_GIT}'><img src='https://img.shields.io/github/downloads/lost-scripts/${script_id}/total?logo=data:image/svg%2bxml;base64,${ICON_DL_B64}&color=blue&label=' height='20'></a></td>
+		</tr>"
+		
 		echo "$ST_ROW" >> "$STAR_TBL_TMP"
 	fi
 
-	# 💉 INYECCIÓN ÚNICA (Solo cuando llegamos al Core)
-	if [[ "$script_id" == "$CORE" && -s "$STAR_TBL_TMP" ]]; then
-		# 4.1. Envolvemos en tabla con cabecera (opcional)
+	if [[ "$script_id" == "$CORE" && -s "$STAR_TBL_TMP" ]]; then # Single injection (Only when we reach the Core)
+		# 2.8a Envolvemos en tabla con cabecera (opcional)
 		FINAL_STAR_HTML="<table width='100%' border='2' class='card'>$(cat "$STAR_TBL_TMP")</table>"
 		
-		# 4.2. Inyección en el README del Core (dentro de TARGET_DIR para que Git lo vea)
+		# 2.8b Inyección en el README del Core (dentro de TARGET_DIR para que Git lo vea)
 		TARGET_README="$TARGET_DIR/docs/README.md"
 		S_START="<!-- STARRED_START -->"; S_END="<!-- STARRED_END -->"
 
