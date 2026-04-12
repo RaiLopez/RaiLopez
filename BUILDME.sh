@@ -245,16 +245,21 @@ for script_id in $PACKS; do
 	# 💉 INYECCIÓN ÚNICA (Solo cuando el bucle llega al Core)
 	if [[ "$script_id" == "$CORE" && -s "$STAR_TBL_TMP" ]]; then
 		CORE_READ="$TARGET_DIR/docs/README.md"
-		# Usamos variables locales para las marcas (evita que el renderizado las borre)
-
-		if [ -f "$CORE_READ" ] && grep -q "$S_START" "$CORE_READ"; then
-			# Vaciamos el contenido previo entre marcas
-			sed -i "/$S_START/,/$S_END/{ /$S_START/b; /$S_END/b; d }" "$CORE_READ"
-			# Inyectamos el contenido del temporal
-			sed -i "/$S_START/r /dev/stdin" "$CORE_READ" <<< "$(cat "$STAR_TBL_TMP")"
-			# Limpieza: Borramos las marcas para que el README público sea profesional
+		
+		# Verificación de seguridad para evitar el error de sed
+		if [[ -n "${S_START:-}" && -n "${S_END:-}" ]] && grep -q "$S_START" "$CORE_READ"; then
+			# 1. Limpiamos con una sintaxis más segura
+			sed -i "/$S_START/,/$S_END/ { /$S_START/b; /$S_END/b; d; }" "$CORE_READ"
+			
+			# 2. Inyectamos el contenido
+			sed -i "/$S_START/r $STAR_TBL_TMP" "$CORE_READ"
+			
+			# 3. Limpieza final de marcas
 			sed -i "/$S_START/d; /$S_END/d" "$CORE_READ"
+			
 			echo "    ⭐ Featured Cards injected & cleaned in Core's README."
+		else
+			echo "    ⚠️  Skip Starred: Markers not found in $CORE_READ"
 		fi
 	fi
 
@@ -342,7 +347,8 @@ echo "--- 📝 Updating Monorepo's Catalog ---"
 CAT_TMP_TBL=$(mktemp); CAT_START='<!-- CATALOG_START -->'; CAT_END='<!-- CATALOG_END -->'
 
 # 3a. Table Header (Remote icons so they're always visible)
-echo "<table id='catalog' width='100%' border='0'>$TBL_HEAD" > "$CAT_TMP_TBL"
+echo "<table id='catalog' width='100%' border='0'><thead><tr><th align='center' width='96'>Icon</th><th align='center' width='120'>Name</th><th align='center' width='1920'>Description</th><th align='center' title='Direct Download Links'>📦</th></tr></thead><tbody>" > "$CAT_TMP_TBL"
+
 
 # 3b. Reorder and Process Collected Data
 if [ -s "$CATALOG_DATA" ]; then
