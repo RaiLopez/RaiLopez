@@ -75,7 +75,6 @@ URL_BASE="https://${FORGE[BASE]}/${FORGE[USER]}"
 URL_RAW="https://${FORGE[BRAW]}/${FORGE[USER]}"
 URL_RAW_CORE="${URL_RAW}/${CORE}/main/ScriptResources/${CORE}"
 URL_RAW_MONO="https://${FORGE[BRAW]}/${FORGE[USER]}/${MONOREPO}/refs/heads/main"
-TBL_HEAD="<thead><tr><th align='center' width='96'>Icon</th><th align='center' width='120'>Name</th><th align='center' width='1920'>Description</th><th align='center' title='Direct Download Links'>📦</th></tr></thead><tbody>"
 STAR_TBL_TMP=$(mktemp); STAR_RAW=""; S_START="<!-- STARRED_START -->"; S_END="<!-- STARRED_END -->"
 if [[ -f "$CORE_INDEX" ]]; then
 	STAR_RAW=$(head -n 25 "$CORE_INDEX" | grep "Starred:" | sed 's/.*\[\(.*\)\].*/\1/' | tr -d ' ')
