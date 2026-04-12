@@ -18,7 +18,7 @@ declare -r  DOCSDIR="./docs" # Monorepo's bunker
 declare -r  DISTDIR="_dist" # Specifying a directory implies creating ZIPs at ./docs/id/$DISTDIR (assuming zip.exe & bzip2.dll exist in %ProgramFiles%\Git\usr\bin)
 declare -r  STRIP_YAML=true
 declare -ar ZIPIGNORE=( "README.md" "LICENSE" "docs" "docs/*" "*/docs/*" "*.zip" )
-declare -ar CATALOG_EXCLUDE=("DRAFT" "HIDDEN" "ALPHA" "PRIVATE" "LEGACY")
+declare -ar CATALOG_EXCLUDE=("DRAFT" "HIDDEN" "PRIVATE" "LEGACY")
 declare --  CATALOG_DATA=$(mktemp)
 declare --  PUBLISH=false # Requires the script folder has a repo and 'origin' remote
 declare -A  REPORT=( [DUR]=0 [TOT]=0 [LOC]=0 [PUB]=0 [ISS]=0)
@@ -218,21 +218,22 @@ for script_id in $PACKS; do
 
 	# --- ⭐ 2.8 STARRED/FEATURED CARD GENERATOR
 	if [[ -n "$STAR_RAW" && ",$STAR_RAW," == *",$script_id,"* ]]; then
-		# Definimos las rutas para esta tarjeta
 		ST_IMG="https://raw.githubusercontent.com/RaiLopez/${script_id}/main/docs/assets/icon.png"
 		ST_GIT="https://github.com/lost-scripts/${script_id}"
 		
-		# Formato Tarjeta (Una tabla independiente por cada script)
-		ST_CARD="<table width='100%' border='0' style='border: 1px solid #444; border-radius: 8px; margin-bottom: 10px; padding: 10px;'>
+		# Usamos v_dsc_plain si v_dsc falla, para asegurar que no quede vacío
+		FINAL_DSC="${v_dsc:-$v_dsc_plain}"
+
+		ST_CARD="<table width='100%' border='0' style='margin-bottom: 1em; border: 1px solid #333;'>
 			<tr>
-				<td align='center' width='80'>
-					<a href='${ST_GIT}'><img src='${ST_IMG}' width='48' class='colorize' alt='Icon'></a>
+				<td align='center' width='96'>
+					<a href='${ST_GIT}'><img src='${ST_IMG}' width='48' class='colorize'></a>
 				</td>
-				<td valign='middle'>
-					<a href='${ST_GIT}' style='text-decoration:none;'><strong>${v_name}</strong></a><br>
-					<small>${v_dsc}</small>
+				<td>
+					<a href='${ST_GIT}'><strong>${v_name}</strong></a><br>
+					${FINAL_DSC}
 				</td>
-				<td align='right' width='120' valign='middle'>
+				<td align='right' width='120'>
 					<a href='${ST_GIT}'><img src='https://img.shields.io/github/downloads/lost-scripts/${script_id}/total?logo=data:image/svg%2bxml;base64,${ICON_DL_B64}&color=blue&label=' height='20'></a>
 				</td>
 			</tr>

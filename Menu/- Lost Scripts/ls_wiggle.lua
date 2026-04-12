@@ -6,6 +6,7 @@ ScriptName = "LS_Wiggle"
 ScriptBirth = "20231022-0415"
 ScriptBuild = "20251023-0011"
 ScriptTarget = "14.4 Pro"
+ScriptStage = "ALPHA"
 ScriptType = "Window"
 ScriptDep = {"Utility/ls_other.lua","Modules/ls_modules.lua"}
 ScriptDesc = "Animation helpers and mouse capturing for Moho&reg; Animation Software." -- ⚠ AVOID UNICODE! (Use HTML entities)
