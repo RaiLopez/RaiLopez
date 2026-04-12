@@ -75,7 +75,7 @@ URL_BASE="https://${FORGE[BASE]}/${FORGE[USER]}"
 URL_RAW="https://${FORGE[BRAW]}/${FORGE[USER]}"
 URL_RAW_CORE="${URL_RAW}/${CORE}/main/ScriptResources/${CORE}"
 URL_RAW_MONO="https://${FORGE[BRAW]}/${FORGE[USER]}/${MONOREPO}/refs/heads/main"
-TBL_HEAD="<table id='catalog' width='100%' border='0'><thead><tr><th align='center' width='96'>Icon</th><th align='center' width='120'>Name</th><th align='center' width='1920'>Description</th><th align='center' title='Direct Download Links'>📦</th></tr></thead><tbody>"
+TBL_HEAD="<thead><tr><th align='center' width='96'>Icon</th><th align='center' width='120'>Name</th><th align='center' width='1920'>Description</th><th align='center' title='Direct Download Links'>📦</th></tr></thead><tbody>"
 STAR_TBL_TMP=$(mktemp); STAR_RAW=""; S_START="<!-- STARRED_START -->"; S_END="<!-- STARRED_END -->"
 if [[ -f "$CORE_INDEX" ]]; then
 	STAR_RAW=$(head -n 25 "$CORE_INDEX" | grep "Starred:" | sed 's/.*\[\(.*\)\].*/\1/' | tr -d ' ')
@@ -225,7 +225,6 @@ for script_id in $PACKS; do
 
 		echo "$TBL_HEAD" > "$STAR_TBL_TMP"
 
-		#ST_ROW="<tr><td align='center' width='96'><img src='${ST_IMG}' width='48' class='colorize'></td><td><b>${v_name}</b></td><td>${v_dsc_plain}</td><td align='right' nowrap><a href='${ST_GIT}' title='Go to repository...'><img src='${ST_DLS}' height='20'></a></td></tr>"
 		ST_ROW="<tr>
 			<td align='center' width='96'><a href='${ST_GIT}'><img src='${ST_IMG}' width='48' class='colorize'></a></td>
 			<td><a href='${ST_GIT}'><b>${v_name}</b></a></td>
@@ -336,7 +335,7 @@ echo "--- 📝 Updating Monorepo's Catalog ---"
 CAT_TMP_TBL=$(mktemp); CAT_START='<!-- CATALOG_START -->'; CAT_END='<!-- CATALOG_END -->'
 
 # 3a. Table Header (Remote icons so they're always visible)
-echo "$TBL_HEAD" > "$CAT_TMP_TBL"
+echo "<table id='catalog' width='100%' border='0'>$TBL_HEAD" > "$CAT_TMP_TBL"
 
 # 3b. Reorder and Process Collected Data
 if [ -s "$CATALOG_DATA" ]; then
