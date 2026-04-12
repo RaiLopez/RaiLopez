@@ -171,15 +171,18 @@ for script_id in $PACKS; do
 		DISPLAY_VER="$v_ver"; [[ "$v_stg" != "STABLE" ]] && DISPLAY_VER="${v_ver}-${v_stg}"
 		SAFE_TAR="${v_tar// /_}"
 		AS_DIR="https://${FORGE[BRAW]}/${FORGE[USER]}/${MONOREPO}/refs/heads/main/docs/${script_id}/assets"
-		SI_DL="https://img.shields.io/github/downloads/${FORGE[USER]}/${script_id}/total?logo=data:image/svg%2bxml;base64,${ICON_DL_B64}&color=blue&label=Download"
-		SL_DL="${URL_BASE}/${script_id}/releases/latest/download/${script_id}.zip" # "Download latest version..."
-		SI_REL="https://img.shields.io/github/release/${FORGE[USER]}/${script_id}?logo=github&color=yellow&label=Release"
-		SL_REL="${URL_BASE}/${script_id}/releases/latest" # Go to release in GitHub...
-		SI_TAR="https://img.shields.io/badge/For-Moho_${SAFE_TAR}-orange"
-		SL_TAR="https://moho.lostmarble.com/" # Go to Moho® homepage...
+		DL_SHI="https://img.shields.io/github/downloads/${FORGE[USER]}/${script_id}/total?logo=data:image/svg%2bxml;base64,${ICON_DL_B64}&color=blue&label=Download"
+		DL_LNK="${URL_BASE}/${script_id}/releases/latest/download/${script_id}.zip"
+		DL_WID=""; [[ "$v_stg" != "HIDDEN" ]] && DL_WID="<a href='${DL_LNK}' title='Download latest version...'><img src='${DL_SHI}' alt='Download'></a> "
+		RE_SHI="https://img.shields.io/github/release/${FORGE[USER]}/${script_id}?logo=github&color=yellow&label=Release"
+		RE_LNK="${URL_BASE}/${script_id}/releases/latest"
+		RE_WID=""; [[ "$v_stg" != "HIDDEN" ]] && RE_WID="<a href='${RE_LNK}' title='Go to release in GitHub...'><img src='${RE_SHI}' alt='Release'></a> "
+		TA_SHI="https://img.shields.io/badge/For-Moho_${SAFE_TAR}-orange"
+		TA_LNK="https://moho.lostmarble.com/"
+		TA_WID=""; [[ "$v_stg" != "HIDDEN" ]] && TA_WID="<a href='${TA_LNK}' title='Go to Moho® homepage...'><img src='${TA_SHI}' alt='Moho'></a> "
 
 		# 🏗️ Build Table (Single line for SED safety)
-		HEADER_HTML="<table id='top' width='100%' border='0'><tr><td align='left' valign='middle' width='120'><picture><source media='(prefers-color-scheme: dark)' srcset='${AS_DIR}/icon_dark.png'><source media='(prefers-color-scheme: light)' srcset='${AS_DIR}/icon_light.png'><img src='${AS_DIR}/icon.png' width='48' alt='Icon' class='colorize'></picture></td><td align='right' valign='middle' width='1920' nowrap><a href='${SL_DL}' title='Download latest version...'><img src='${SI_DL}' alt='Download'></a> <a href='${SL_REL}' title='Go to release in GitHub...'><img src='${SI_REL}' alt='Release'></a> <a href='${SL_TAR}' title='Go to Moho® homepage...'><img src='${SI_TAR}' alt='Moho'></a></td></tr></table>"
+		HEADER_HTML="<table id='top' width='100%' border='0'><tr><td align='left' valign='middle' width='120'><picture><source media='(prefers-color-scheme: dark)' srcset='${AS_DIR}/icon_dark.png'><source media='(prefers-color-scheme: light)' srcset='${AS_DIR}/icon_light.png'><img src='${AS_DIR}/icon.png' width='48' alt='Icon' class='colorize'></picture></td><td align='right' valign='middle' width='1920' nowrap>${DL_WID} ${RE_WID} ${TA_WID}</td></tr></table>"
 
 		# 💉 Surgical Injection (Direct & clean)
 		sed -i "\|$H_START|,\|$H_END|{ \|$H_START|b; \|$H_END|b; d; }" "$TARGET_README" # 1. Delete content between marker
@@ -305,7 +308,7 @@ if [ -s "$CATALOG_DATA" ]; then
 		for skip in "${CATALOG_EXCLUDE[@]}"; do
 			[[ "$stg" == "$skip" ]] && is_excluded=true && break
 		done
-		[[ "$is_excluded" == true ]] && continue # BAK: `[[ "$is_excluded" == true ]] && [[ "$id" != "$CORE" ]] && continue``
+		[[ "$is_excluded" == true ]] && continue # TODO (Once the Core is ready?): `[[ "$is_excluded" == true ]] && [[ "$id" != "$CORE" ]] && continue`
 
 		# --- 🔍 TRIPLE ICON/FALLBACK LOGIC (Hybrid structure)
 		PACK_LNK="${URL_BASE}/${id}/"

@@ -84,7 +84,7 @@ Persistent shape palette plus helpers for better management of Moho® vectors in
 
 <br>
 
-## Installation
+## Download & Install
 
 [**Download**][h-shield1-a] the file, **unzip** it, and proceed with the installation method of your choice...
 
