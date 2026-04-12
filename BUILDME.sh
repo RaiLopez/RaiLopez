@@ -75,9 +75,7 @@ URL_RAW_CORE="${URL_RAW}/${CORE}/main/ScriptResources/${CORE}"
 URL_RAW_MONO="https://${FORGE[BRAW]}/${FORGE[USER]}/${MONOREPO}/refs/heads/main"
 
 for script_id in $PACKS; do
-	v_name="" v_ver="0.0.0" v_tar="" v_stg="STABLE" v_dsc=""
-
-	# --- PATH CONFIGURATION & MOVEMENT
+	# --- 🔀 2.1. PATH CONFIGURATION & MOVEMENT
 	if [[ "$script_id" == "$CORE" ]]; then
 		TARGET_DIR="$CORE_DEST"
 		echo -e "📦 Finalizing Core: ${T_U}$script_id${T_N}"
@@ -86,13 +84,13 @@ for script_id in $PACKS; do
 		echo -e "📦 Processing pack: ${T_U}$script_id${T_N}"
 		mkdir -p "$TARGET_DIR"
 
-		# --- 🔽 2.1 (B) MOVE NORMAL PACKS COMPONENT FILES: Find anything starting with the ID (scripts, icons...) excluding the ScriptResources folder to handle it separately
+		# --- 🔽 2.1a MOVE NORMAL PACKS COMPONENT FILES: Find anything starting with the ID (scripts, icons...) excluding the ScriptResources folder to handle it separately
 		find "$CORE_DEST" -name "${script_id}*" -not -path "*/ScriptResources/*" -type f | while read -r file; do
 			rel_path=$(dirname "${file#$CORE_DEST/}")
 			mkdir -p "$TARGET_DIR/$rel_path"
 			mv "$file" "$TARGET_DIR/$rel_path/"
 		done
-		# --- ⏬ 2.2 (B) MOVE NORMAL PACKS RESOURCES
+		# --- ⏬ 2.1b MOVE NORMAL PACKS RESOURCES
 		if [ -d "$CORE_DEST/ScriptResources/$script_id" ]; then
 			mkdir -p "$TARGET_DIR/ScriptResources"
 			rm -rf "$TARGET_DIR/ScriptResources/$script_id"
@@ -100,8 +98,8 @@ for script_id in $PACKS; do
 		fi
 	fi
 
-	# --- 🔍 2.3 INJECT DEPENDENCIES & METADATA EXTRACTION (The "Smart Search" Logic)
-	header="" # Security reset
+	# --- 🔍 2.3. INJECT DEPENDENCIES & METADATA EXTRACTION (The "Smart Search" Logic)
+	header="" v_name="" v_ver="0.0.0" v_tar="" v_stg="STABLE" v_dsc="" v_dsc_plain="" # Atomic reset
 	if [[ "$script_id" == "$CORE" ]]; then
 		MASTER_CORE="./Utility/ls_utilities.lua"
 		if [ -f "$MASTER_CORE" ]; then
@@ -130,6 +128,9 @@ for script_id in $PACKS; do
 			fi
 		done < <(find "$TARGET_DIR" -name "${script_id}.lua" -type f)
 	fi
+
+	# --- 👀 2.4. UNIVERSAL METADATA COLLECTION
+	v_name=$(echo "$script_id" | sed 's/ls_//g; s/_/ /g' | awk '{for(i=1;i<=NF;i++)sub(/./,toupper(substr($i,1,1)),$i)}1'); v_name="${v_name:-${script_id:-Unknown}}"
 	if [[ -n "$header" ]]; then # Extract everything in one go so it's available afterwards
 		v_ver=$(echo "$header" | grep "${VARS[VER]}" | sed -n "${VAREXS[S]}") || v_ver="0.0.0"
 		v_stg=$(echo "$header" | grep "${VARS[STG]}" | sed -n "${VAREXS[S]}") || v_stg="STABLE"; v_stg="${v_stg// /}" # Clean spaces for safety reasons
@@ -137,8 +138,16 @@ for script_id in $PACKS; do
 		v_tar=$(echo "$header" | grep "${VARS[TAR]}" | sed -n "${VAREXS[S]}") || v_tar=""
 		v_dsc=$(echo "$header" | grep "${VARS[DSC]}" | sed -n "${VAREXS[S]}") || v_dsc=""
 	fi
+	if [[ -z "$v_dsc" ]]; then # Description fallback
+		if [[ "$script_id" == "$CORE" ]]; then
+			v_dsc="Essential shared resources and core modules required for the <a href='https://lost-scripts.github.io/' title='Go to Lost Scripts&trade; website...'>Lost Scripts</a>&trade; project to work with <a href='https://moho.lostmarble.com/' title='Go to Moho&reg; homepage...'>MOHO</a> Animation Software."
+		else
+			v_dsc="Lost Script <em>$v_name</em> for <a href='https://moho.lostmarble.com/' title='Go to Moho&reg; homepage...'>MOHO</a> Animation Software."
+		fi
+		v_desc_plain=$(echo "$v_dsc" | sed 's/<[^>]*>//g')
+	fi
 
-	# --- 📄 2.4 HYBRID DOCS PROMOTION & FALLBACKS
+	# --- 📄 2.5. HYBRID DOCS PROMOTION & FALLBACKS
 	if [[ "$script_id" == "$CORE" ]]; then
 		SOURCE_DOCS="./docs/${CORE}"
 	else
@@ -154,7 +163,7 @@ for script_id in $PACKS; do
 	fi
 	[ ! -f "$TARGET_DIR/LICENSE" ] && [ -f "$CORE_DEST/LICENSE" ] && cp "$CORE_DEST/LICENSE" "$TARGET_DIR/" || true # Ensure that there is a LICENSE
 
-	# --- 🧹 2.5. FINALIZING + CLEANUP: Purge orphaned files in target (Scan the standard Monorepo folders at the destination and if the file doesn't exist in the Monorepo, delete it)
+	# --- 🧹 2.6. FINALIZING + CLEANUP: Purge orphaned files in target (Scan the standard Monorepo folders at the destination and if the file doesn't exist in the Monorepo, delete it)
 	for folder in "${SYNC[@]}"; do
 		[[ "$folder" == "docs" ]] && continue # Skip docs folder!
 		if [ -d "$TARGET_DIR/$folder" ]; then
@@ -169,7 +178,7 @@ for script_id in $PACKS; do
 	#echo -e "📦 Finalizing + Cleaning Package: $TARGET_DIR"
 	find "$TARGET_DIR" -type d -empty -not -path "*/.git*" -delete 2>/dev/null || true
 
-	# --- 🖼️ 2.6. HEADER INJECTION (Per-Pack basis)
+	# --- 🖼️ 2.7. HEADER INJECTION (Per-Pack basis)
 	TARGET_README="$TARGET_DIR/docs/README.md" # Note: 2.4 already renamed index to README
 	H_START='<!-- HEADER_START -->'; H_END='<!-- HEADER_END -->'
 
@@ -188,9 +197,8 @@ for script_id in $PACKS; do
 		TA_LNK="https://moho.lostmarble.com/"
 		TA_WID="<a href='${TA_LNK}' title='Go to Moho® homepage...'><img src='${TA_SHI}' alt='Moho'></a> "
 
-		echo "⚠ DEBUG: script=$script_id | stage=[$v_stg] | widget_size=${#DL_WID}"
 		# 🏗️ Build Table (Single line for SED safety)
-		HEADER_HTML="<table id='top' width='100%' border='0'><tr><td align='left' valign='middle' width='120'><picture><source media='(prefers-color-scheme: dark)' srcset='${AS_DIR}/icon_dark.png'><source media='(prefers-color-scheme: light)' srcset='${AS_DIR}/icon_light.png'><img src='${AS_DIR}/icon.png' width='48' alt='Icon' class='colorize'></picture></td><td align='right' valign='middle' width='1920' nowrap>${DL_WID} ${RE_WID} ${TA_WID}</td></tr></table>"
+		HEADER_HTML="<table id='top' width='100%' border='0'><tr><td align='left' valign='middle' width='120'><picture><source media='(prefers-color-scheme: dark)' srcset='${AS_DIR}/icon_dark.png'><source media='(prefers-color-scheme: light)' srcset='${AS_DIR}/icon_light.png'><img src='${AS_DIR}/icon.png' width='48' alt='Icon' title='${v_name}: ${v_desc_plain}' class='colorize'></picture></td><td align='right' valign='middle' width='1920' nowrap>${DL_WID} ${RE_WID} ${TA_WID}</td></tr></table>"
 
 		# 💉 Surgical Injection (Direct & clean)
 		sed -i "\|$H_START|,\|$H_END|{ \|$H_START|b; \|$H_END|b; d; }" "$TARGET_README" # 1. Delete content between marker
@@ -202,11 +210,11 @@ for script_id in $PACKS; do
 		echo "    ✅ Header injected & Cleaned: $script_id"
 	fi
 
-	# --- 🎁 2.7. SCRIPT ZIP GENERATION (Optional & Local)
+	# --- 🎁 2.8. SCRIPT ZIP GENERATION (Optional & Local)
 	zipper "$script_id" "$TARGET_DIR"
 	((++REPORT[TOT]))
 
-	# --- 🚀 2.8. GIT SYNC & CATALOG DATA
+	# --- 🚀 2.9. GIT SYNC & CATALOG DATA
 	if [ -d "$TARGET_DIR/.git" ] || [[ "$script_id" == "$CORE" ]]; then
 		[[ -d "$TARGET_DIR/.git" ]] && cd "$TARGET_DIR" || true
 
@@ -227,17 +235,9 @@ for script_id in $PACKS; do
 			fi
 		fi
 
-		# 🗳️ B. DATA COLLECTION FOR SHIELDS/CATALOG & SYNC (As long as the pack has a remote or it's the Core!)
+		# 🗳️ B. DATA COLLECTION FOR CATALOG & SYNC (As long as the pack has a remote or it's the Core!)
 		if [ "$HAS_REMOTE" = true ] || [[ "$script_id" == "$CORE" ]]; then
 			# B1. COLLECTION (Whenever there is a remote, publishing or not)
-			v_name=$(echo "$script_id" | sed 's/ls_//g; s/_/ /g' | awk '{for(i=1;i<=NF;i++)sub(/./,toupper(substr($i,1,1)),$i)}1')
-			if [[ -z "$v_dsc" ]]; then # Description fallback
-				if [[ "$script_id" == "$CORE" ]]; then
-					v_dsc="Essential shared resources and core modules required for the <a href='https://lost-scripts.github.io/' title='Go to Lost Scripts&trade; website...'>Lost Scripts</a>&trade; project to work with <a href='https://moho.lostmarble.com/' title='Go to Moho&reg; homepage...'>MOHO</a> Animation Software."
-				else
-					v_dsc="Lost Script *$v_name* for [MOHO](https://moho.lostmarble.com/ 'Go to Moho&reg; homepage...')® Animation Software."
-				fi
-			fi
 			if [ "$HAS_REMOTE" = true ]; then
 				git tag 2>/dev/null | grep -Eq '^v?[0-9]+\.[0-9]+\.[0-9]+' && \
 				zip_url="https://${FORGE[BASE]}/${FORGE[USER]}/$script_id/releases/latest/download/${script_id}.zip" || zip_url="https://${FORGE[BASE]}/${FORGE[USER]}/$script_id/archive/refs/heads/main.zip"
@@ -246,7 +246,7 @@ for script_id in $PACKS; do
 			fi
 			echo "$script_id|$v_name|$v_ver|$v_bld|$v_dsc|$v_tar|$zip_url|$v_stg" >> "$CATALOG_DATA" # Records are always written, whether it's DRY RUN or not
 
-			# B2. SYNC LOGIC (Only if PUBLISH is true and there is remote)
+			# B. SYNC LOGIC (Only if PUBLISH is true and there is remote)
 			if [ "$PUBLISH" = true ] && [ "$HAS_REMOTE" = true ]; then
 				echo "    🌐 [Git] SYNCING: $script_id"
 				git add .
