@@ -45,6 +45,10 @@ Provides all the necessary shared/common resources and helpers that *[Moho®](ht
 [m1-5a]: https://github.com/lost-scripts/ls_shapes_window "Release"
 -->
 
+<!-- STARRED_START -->
+<!-- STARRED_END -->
+
+<!-- 
 <table width="100%" border="2" class="card">
 	<tr>
 		<th width="96" valign="top">
@@ -88,7 +92,7 @@ Provides all the necessary shared/common resources and helpers that *[Moho®](ht
 		</td>
 	</tr>
 </table>
-
+-->
 <br>
 
 ## *Features*
