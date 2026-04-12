@@ -12,5 +12,3 @@ Weight: -1
 <!-- HEADER_END -->
 
 # LS Wiggle's Readme
-
-![ ](assets/icon.png "Icon")

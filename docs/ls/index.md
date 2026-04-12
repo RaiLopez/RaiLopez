@@ -15,22 +15,6 @@ Weight: -1
 <!-- HEADER_START -->
 <!-- HEADER_END -->
 
-<table width="100%" border="0">
-	<tr>
-		<th align="left" valign="middle" width="72">
-			<picture>
-				<source media="(prefers-color-scheme: dark)" srcset="assets/icon_dark.png">
-				<img src="assets/icon.png" width="96" alt="Icon" class="colorize">
-			</picture>
-		</th>
-		<th align="right" valign="middle" width="1920" nowrap>
-			<a href="https://moho.lostmarble.com/" title="Go to Moho website"><img height="20px" src="https://img.shields.io/badge/For-Moho_Pro_14.3+-orange" alt="Moho version"></a>
-			<a href="https://github.com/lost-scripts/ls/releases/latest" title="Go to download page"><img height="20px" src="https://img.shields.io/github/v/release/lost-scripts/ls?logo=github" alt="GitHub version"></a>
-			<a href="#!" style="cursor: default;"><img height="20px" src="https://img.shields.io/github/downloads/lost-scripts/ls/total.svg?color=yellow" alt="GitHub downloads"></a>
-		</th>
-	</tr>
-</table>
-
 <!-- Pure Markdown style head...
 | ![Icon](icon.png "Icon") | [![h-1i]][h-1a] [![h-2i]][h-2a] [![h-3i]][h-3a] |
 | :--------------------------- | ----------------------------------------------: |

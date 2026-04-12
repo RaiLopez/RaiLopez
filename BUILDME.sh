@@ -75,7 +75,7 @@ URL_RAW_CORE="${URL_RAW}/${CORE}/main/ScriptResources/${CORE}"
 URL_RAW_MONO="https://${FORGE[BRAW]}/${FORGE[USER]}/${MONOREPO}/refs/heads/main"
 
 for script_id in $PACKS; do
-	v_name="" v_ver="?" v_tar="" v_stg="STABLE" v_dsc=""
+	v_name="" v_ver="0.0.0" v_tar="" v_stg="STABLE" v_dsc=""
 
 	# --- PATH CONFIGURATION & MOVEMENT
 	if [[ "$script_id" == "$CORE" ]]; then
@@ -101,24 +101,19 @@ for script_id in $PACKS; do
 	fi
 
 	# --- 🔍 2.3 INJECT DEPENDENCIES & METADATA (The "Smart Search" Logic)
-	header="" # Reset por seguridad
+	header="" # Security reset
 	if [[ "$script_id" == "$CORE" ]]; then
-		# Para el CORE, forzamos la lectura del archivo maestro
 		MASTER_CORE="./Utility/ls_utilities.lua"
 		if [ -f "$MASTER_CORE" ]; then
 			header=$(head -n 25 "$MASTER_CORE" | tr -d '\r')
 			echo "    ℹ️ Core metadata sourced from: $MASTER_CORE"
 		fi
 	else
-		# Para los PACKS, mantenemos tu lógica de búsqueda original intacta
 		while read -r main_file; do # We look for ALL namesake script files in TARGET_DIR
 			temp_header=$(head -n 25 "$main_file" | tr -d '\r') # We check the header to see if it's the one that contains the info
-			# Buscamos ScriptDep o ScriptVersion para identificar el archivo principal
-			if echo "$temp_header" | grep -qE "${VARS[DEP]}|${VARS[VER]}"; then # Guard clause: if ScriptDep variable is found...
+			if echo "$temp_header" | grep -qE "${VARS[DEP]}|${VARS[VER]}"; then # Guard clause: if there's ScriptDep/ScriptVersion, it's main file
 				header="$temp_header"
-				
-				# Inyección de dependencias (tu lógica de siempre)
-				deps=$(echo "$header" | grep "${VARS[DEP]}" | sed -e "${VAREXS[A]}") # If we get here, we have found the "parent file" (the ID with info)
+				deps=$(echo "$header" | grep "${VARS[DEP]}" | sed -e "${VAREXS[A]}") # Dependency injection: If we get here, we have found the "parent file" (the ID with info)
 				for dep in $deps; do
 					target_dep=$(echo "$dep" | tr -d '{}," ' | tr '\\' '/') # Complete removal of unwanted characters
 					if [[ -n "$target_dep" && "$target_dep" != "/" ]]; then # We verify that it is not an empty string or an orphaned bar
@@ -131,7 +126,7 @@ for script_id in $PACKS; do
 						fi
 					fi
 				done
-				break # Ya encontramos el archivo principal, salimos del while
+				break # Main file found; exiting the loop...
 			fi
 		done < <(find "$TARGET_DIR" -name "${script_id}.lua" -type f)
 	fi

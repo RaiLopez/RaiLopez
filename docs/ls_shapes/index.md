@@ -8,15 +8,6 @@ Modified: 2025-10-11 22:15:00
 
 <!-- HEADER_START -->
 <!-- HEADER_END -->
-
-<!-- mIxEd style head (quite simple and full width in GitHub) -->
-<table id="top" width="100%" border="0"><tr><td align="left" valign="middle" width="96">
-
-[![Icon](assets/icon.png "Icon")](#! "Icon")
-</td><td align="right" valign="middle" width="1920" nowrap>
-
-[![h-shield1-i]][h-shield1-a] [![h-shield2-i]][h-shield2-a] [![h-shield3-i]][h-shield3-a]
-</td></tr></table>
  
 # LS Shapes Window
 

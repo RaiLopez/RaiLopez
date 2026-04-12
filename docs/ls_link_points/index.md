@@ -12,5 +12,3 @@ Weight: -1
 <!-- HEADER_END -->
 
 # LS Link Points' Readme
-
-![Icon](assets/icon.png)
