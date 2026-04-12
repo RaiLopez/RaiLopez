@@ -223,8 +223,6 @@ for script_id in $PACKS; do
 		ST_GIT="https://github.com/lost-scripts/${script_id}"
 		ST_DLS="https://img.shields.io/github/downloads/lost-scripts/${script_id}/total.svg?color=yellow"
 
-		echo "$TBL_HEAD" > "$STAR_TBL_TMP"
-
 		ST_ROW="<tr>
 			<td align='center' width='96'><a href='${ST_GIT}'><img src='${ST_IMG}' width='48' class='colorize'></a></td>
 			<td><a href='${ST_GIT}'><b>${v_name}</b></a></td>
@@ -236,7 +234,8 @@ for script_id in $PACKS; do
 
 	if [[ "$script_id" == "$CORE" && -s "$STAR_TBL_TMP" ]]; then # Single injection (Only when we reach the Core)
 		# 2.8a Envolvemos en tabla con cabecera (opcional)
-		FINAL_STAR_HTML="<table width='100%' border='2' class='card'>$(cat "$STAR_TBL_TMP")</table>"
+		echo "<table id='catalog' class='card' width='100%' border='2'>$TBL_HEAD" > "$STAR_TBL_TMP"
+		FINAL_STAR_HTML="<table id='catalog' class='card' width='100%' border='2'>$TBL_HEAD$(cat "$STAR_TBL_TMP")</tbody></table>"
 		
 		# 2.8b Inyección en el README del Core (dentro de TARGET_DIR para que Git lo vea)
 		CORE_READ="$TARGET_DIR/docs/README.md"
