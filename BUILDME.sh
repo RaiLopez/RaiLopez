@@ -186,7 +186,7 @@ for script_id in $PACKS; do
 		RE_WID=""; [[ "$v_stg" != "HIDDEN" ]] && RE_WID="<a href='${RE_LNK}' title='Go to release in GitHub...'><img src='${RE_SHI}' alt='Release'></a> "
 		TA_SHI="https://img.shields.io/badge/For-Moho_${SAFE_TAR}-orange"
 		TA_LNK="https://moho.lostmarble.com/"
-		TA_WID=""; [[ "$v_stg" != "HIDDEN" ]] && TA_WID="<a href='${TA_LNK}' title='Go to Moho® homepage...'><img src='${TA_SHI}' alt='Moho'></a> "
+		TA_WID="<a href='${TA_LNK}' title='Go to Moho® homepage...'><img src='${TA_SHI}' alt='Moho'></a> "
 
 		echo "⚠ DEBUG: script=$script_id | stage=[$v_stg] | widget_size=${#DL_WID}"
 		# 🏗️ Build Table (Single line for SED safety)
