@@ -240,8 +240,8 @@ for script_id in $PACKS; do
 		TA_LNK="https://moho.lostmarble.com/"
 		TA_WID="<a href='${TA_LNK}' title='Go to Moho® homepage...'><img src='${TA_SHI}' alt='Moho'></a> "
 
-		# 🏗️ Build Table (Single line for SED safety)
-		HEADER_HTML="<table id='top' width='100%' border='0'><tr><td align='left' valign='middle' width='120'><picture><source media='(prefers-color-scheme: dark)' srcset='${AS_DIR}/icon_dark.png'><source media='(prefers-color-scheme: light)' srcset='${AS_DIR}/icon_light.png'><img src='${AS_DIR}/icon.png' width='48' alt='Icon' title='${v_name}: ${v_dsc_plain}' class='colorize'></picture></td><td align='right' valign='middle' width='1920' nowrap>${DL_WID} ${RE_WID} ${TA_WID}</td></tr></table>"
+		# 🏗️ Build Table (Single line for SED safety) [Max. GH width: 1012]
+		HEADER_HTML="<table id='top' width='100%' border='0'><tr><td align='center' valign='middle' width='96'><picture><source media='(prefers-color-scheme: dark)' srcset='${AS_DIR}/icon_dark.png'><source media='(prefers-color-scheme: light)' srcset='${AS_DIR}/icon_light.png'><img src='${AS_DIR}/icon.png' width='48' alt='Icon' title='${v_name}: ${v_dsc_plain}' class='colorize'></picture></td><td align='right' valign='middle' width='916' nowrap>${DL_WID} ${RE_WID} ${TA_WID}</td></tr></table>"
 
 		# 💉 Surgical Injection (Direct & clean)
 		sed -i "\|$H_START|,\|$H_END|{ \|$H_START|b; \|$H_END|b; d; }" "$TARGET_FILE" # 1. Delete content between markers
@@ -257,19 +257,19 @@ for script_id in $PACKS; do
 	if [[ "$v_skip" == false ]] && [[ -n "$STAR_RAW" && ",$STAR_RAW," == *",$script_id,"* ]]; then
 		ST_GIT="https://github.com/${FORGE[USER]}/${script_id}"
 		
-		if [[ -n "$v_zip_url" ]]; then # Shield de descargas: Usamos v_zip_url que ya viene calculada de la "Aduana" (2.4c)
-			ST_DLS_IMG="<img src='https://img.shields.io/github/downloads/${FORGE[USER]}/${script_id}/total?logo=data:image/svg%2bxml;base64,${ICON_DL_B64}&color=blue&label=' alt='Download' title='Download: ${script_id}.zip' height='24'>"
+		if [[ -n "$v_zip_url" ]]; then # Download shield: We use v_zip_url, which is already calculated in Customs (2.4c)
+			ST_DLS_IMG="<img src='https://img.shields.io/github/downloads/${FORGE[USER]}/${script_id}/total?logo=data:image/svg%2bxml;base64,${ICON_DL_B64}&color=blue&label=' alt='Download' title='Download: ${script_id}.zip' width='160'>"
 			ST_LNK="$v_zip_url"
 		else
-			ST_DLS_IMG="<img src='https://img.shields.io/badge/Soon…-inactive.svg' alt='Download' title='Download: Unavailable' height='24'>"
+			ST_DLS_IMG="<img src='https://img.shields.io/badge/Soon…-inactive.svg' alt='Download' title='Download: Unavailable' width='160'>"
 			ST_LNK="${ST_GIT}"
 		fi
 
-		ST_CARD="<table width='100%' border='2' class='card'>
+		ST_CARD="<table width='100%' border='3' class='card'>
 			<tr>
-				<td align='center' width='120'><a href='${ST_GIT}'>${PICTURE_TAG}</a></td>
-				<td width='960'><a href='${ST_GIT}'><strong>${v_name}</strong></a><br>${v_dsc:-$v_dsc_plain}</td>
-				<td align='center' width='240'><a href='${ST_LNK}'>${ST_DLS_IMG}</a></td>
+				<td align='center' width='96'><a href='${ST_GIT}'>${PICTURE_TAG}</a></td>
+				<td width='724'><a href='${ST_GIT}'><strong>${v_name}</strong></a><br>${v_dsc:-$v_dsc_plain}</td>
+				<td align='center' width='192'><a href='${ST_LNK}'>${ST_DLS_IMG}</a></td>
 			</tr>
 		</table>"
 		echo "$ST_CARD" >> "$STAR_TBL_TMP"
