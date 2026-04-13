@@ -5,7 +5,7 @@ set -euo pipefail; trap 'debugger $LINENO "$BASH_COMMAND"' ERR # Debug Mode (Com
 #export PS4='+ ${BASH_SOURCE}:${LINENO}: ${FUNCNAME[0]:+${FUNCNAME[0]}(): }' # Uncomment for detailed/alternative debugging with 'bash -x ./BUILDME.sh'
 
 # ⚙ CONFIGURATION
-declare -Ar INFO=( [NAME]="Lost Builder" [VERSION]="1.7.3" [CREATOR]="Rai López" [DESC]="Lost Project's Development Helper" )
+declare -Ar INFO=( [NAME]="Lost Builder" [VERSION]="1.7.4" [CREATOR]="Rai López" [DESC]="Lost Project's Development Helper" )
 declare -ar INCLUDE=( "Embed" "Menu" "Modules" "ScriptResources" "Smart" "Tool" "Utility" "LICENSE" ) # Note: Make sure the element doesn't remain orphaned in Core if you remove it from here!
 declare -ar SYNC=( "Modules" "Tool" "Utility" "ScriptResources" "Menu" "Embed" "Smart" ) # Pack folders for syncing...
 declare -Ar VARS=( [DEP]="ScriptDep" [VER]="ScriptVersion" [BLD]="ScriptBuild" [STG]="ScriptStage" [DSC]="ScriptDesc" [TAR]="ScriptTarget" ) # Script header variables (if "ScriptDep" is present in a .lua file, it's considered a pack!)
@@ -255,19 +255,21 @@ for script_id in $PACKS; do
 
 	# --- 🌟 2.8 STARRED/FEATURED CARD GENERATOR
 	if [[ "$v_skip" == false ]] && [[ -n "$STAR_RAW" && ",$STAR_RAW," == *",$script_id,"* ]]; then
-		ST_GIT="https://github.com/lost-scripts/${script_id}"
+		ST_GIT="https://github.com/${FORGE[USER]}/${script_id}"
 		
-		if git -C "$TARGET_DIR" remote get-url origin >/dev/null 2>&1; then # Shield de descargas con check de remoto
-			ST_DLS_IMG="<img src='https://img.shields.io/github/downloads/lost-scripts/${script_id}/total?logo=data:image/svg%2bxml;base64,${ICON_DL_B64}&color=blue&label=' alt='Download' title='Download: ${script_id}.zip' height='24'>"
+		if [[ -n "$v_zip_url" ]]; then # Shield de descargas: Usamos v_zip_url que ya viene calculada de la "Aduana" (2.4c)
+			ST_DLS_IMG="<img src='https://img.shields.io/github/downloads/${FORGE[USER]}/${script_id}/total?logo=data:image/svg%2bxml;base64,${ICON_DL_B64}&color=blue&label=' alt='Download' title='Download: ${script_id}.zip' height='24'>"
+			ST_LNK="$v_zip_url"
 		else
 			ST_DLS_IMG="<img src='https://img.shields.io/badge/Soon…-inactive.svg' alt='Download' title='Download: Unavailable' height='24'>"
+			ST_LNK="${ST_GIT}"
 		fi
 
 		ST_CARD="<table width='100%' border='2' class='card'>
 			<tr>
 				<td align='center' width='120'><a href='${ST_GIT}'>${PICTURE_TAG}</a></td>
 				<td width='960'><a href='${ST_GIT}'><strong>${v_name}</strong></a><br>${v_dsc:-$v_dsc_plain}</td>
-				<td align='center' width='240'><a href='${ST_GIT}'>${ST_DLS_IMG}</a></td>
+				<td align='center' width='240'><a href='${ST_LNK}'>${ST_DLS_IMG}</a></td>
 			</tr>
 		</table>"
 		echo "$ST_CARD" >> "$STAR_TBL_TMP"
