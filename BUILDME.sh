@@ -159,11 +159,11 @@ for script_id in $PACKS; do
 	# --- 🚦 2.4b GLOBAL EXCLUSION FILTER
 	for skip in "${CATALOG_EXCLUDE[@]}"; do
 		if [[ "$v_stg" == "$skip" ]]; then
-			if [[ "$script_id" == "$CORE" ]]; then
-				v_skip=false  # Core exception (It's never skipped)
-			else
+			#if [[ "$script_id" == "$CORE" ]]; then
+				#v_skip=false  # Core exception: It's never skipped (Uncomment everything to revert) 
+			#else
 				v_skip=true
-			fi
+			#fi
 			break
 		fi
 	done
@@ -316,14 +316,9 @@ for script_id in $PACKS; do
 		# 🗳️ B. DATA COLLECTION FOR CATALOG & SYNC (As long as the pack has a remote or it's the Core!)
 		if [ "$HAS_REMOTE" = true ] || [[ "$script_id" == "$CORE" ]]; then
 			# B1. COLLECTION (Whenever there is a remote, publishing or not)
-			if [ "$HAS_REMOTE" = true ]; then
-				git tag 2>/dev/null | grep -Eq '^v?[0-9]+\.[0-9]+\.[0-9]+' && \
-				zip_url="https://${FORGE[BASE]}/${FORGE[USER]}/$script_id/releases/latest/download/${script_id}.zip" || zip_url="https://${FORGE[BASE]}/${FORGE[USER]}/$script_id/archive/refs/heads/main.zip"
-			else
-				zip_url="https://${FORGE[BASE]}/${FORGE[USER]}/${CORE}/releases/latest/download/${CORE}.zip"
-			fi
+			echo "DEBUG: id=$script_id | stage=$v_stg | skip=$v_skip"
 			if [[ "$v_skip" == false ]]; then
-				echo "$script_id|$v_name|$v_ver|$v_bld|$v_dsc|$v_tar|$zip_url|$v_stg|$PICTURE_TAG" >> "$CATALOG_DATA" # Unless skipped, records are always written, whether it's DRY RUN or not
+				echo "$script_id|$v_name|$v_ver|$v_bld|$v_dsc|$v_tar|$v_zip_url|$v_stg|$PICTURE_TAG" >> "$CATALOG_DATA" # Unless skipped, records are always written, whether it's DRY RUN or not
 			fi
 
 			# B. SYNC LOGIC (Only if PUBLISH is true and there is remote)
