@@ -159,22 +159,38 @@ for script_id in $PACKS; do
 	# --- 🚦 2.4b GLOBAL EXCLUSION FILTER
 	for skip in "${CATALOG_EXCLUDE[@]}"; do
 		if [[ "$v_stg" == "$skip" ]]; then
-			v_skip=true
+			if [[ "$script_id" == "$CORE" ]]; then
+				v_skip=false  # Core exception (It's never skipped)
+			else
+				v_skip=true
+			fi
 			break
 		fi
 	done
 
-	# --- 🖼️ 2.4c INTELLIGENT ICON LOGIC (Hybrid Support)
+	# --- 🖼️ 2.4c INTELLIGENT ICON LOGIC (Hybrid GitHub/HUGO Support)
 	ASSETS_DIR="./docs/${script_id}/assets"
 	ICON_MAIN="${URL_RAW_MONO}/docs/assets/icon_unk.png"
 	ICON_DARK="${URL_RAW_MONO}/docs/assets/icon_unk_dark.png"
 	ICON_LIGHT="${URL_RAW_MONO}/docs/assets/icon_unk_light.png"
-	if [ -f "$ASSETS_DIR/icon.png" ]; then # Si existen iconos específicos en la carpeta del pack, los usamos
-		ICON_MAIN="${URL_RAW_MONO}/docs/${script_id}/assets/icon.png"
-		[ -f "$ASSETS_DIR/icon_dark.png" ] && ICON_DARK="${URL_RAW_MONO}/docs/${script_id}/assets/icon_dark.png" || ICON_DARK="$ICON_MAIN"
-		[ -f "$ASSETS_DIR/icon_light.png" ] && ICON_LIGHT="${URL_RAW_MONO}/docs/${script_id}/assets/icon_light.png" || ICON_LIGHT="$ICON_MAIN"
+	ICON_DL="https://img.shields.io/badge/-%20-blue?style=flat&logo=data:image/svg%2bxml;base64,${ICON_DL_B64}&logoColor=white"
+	if [ -f "$ASSETS_DIR/icon.png" ]; then # Check for the presence of package-specific icons
+		ICON_MAIN="${URL_RAW_MONO}/docs/${script_id}/assets/icon.png" # The default icon will always be the original Moho icon
+		[ -f "$ASSETS_DIR/icon_dark.png" ] && ICON_DARK="${URL_RAW_MONO}/docs/${script_id}/assets/icon_dark.png" || ICON_DARK="$ICON_MAIN" # Look for an optimized version for DARK, or fallback to the original
+		[ -f "$ASSETS_DIR/icon_light.png" ] && ICON_LIGHT="${URL_RAW_MONO}/docs/${script_id}/assets/icon_light.png" || ICON_LIGHT="$ICON_MAIN" # Look for an optimized version for LIGHT, or fallback to the original
 	fi
 	PICTURE_TAG="<picture><source media='(prefers-color-scheme: dark)' srcset='${ICON_DARK}'><source media='(prefers-color-scheme: light)' srcset='${ICON_LIGHT}'><img src='${ICON_MAIN}' width='48' alt='Icon' class='colorize'></picture>"
+
+	# --- 🔗 2.4d UNIVERSAL DOWNLOAD URL
+	if git -C "$TARGET_DIR" remote get-url origin >/dev/null 2>&1; then # REMOTE SCENARIO: Check if there are version tags
+		if git -C "$TARGET_DIR" tag 2>/dev/null | grep -Eq '^v?[0-9]+\.[0-9]+\.[0-9]+'; then
+			v_zip_url="https://${FORGE[BASE]}/${FORGE[USER]}/$script_id/releases/latest/download/${script_id}.zip"
+		else
+			v_zip_url="https://${FORGE[BASE]}/${FORGE[USER]}/$script_id/archive/refs/heads/main.zip"
+		fi
+	else # LOCAL SCENARIO: Target the Core (or it could ne left empty if preferable)
+		v_zip_url="https://${FORGE[BASE]}/${FORGE[USER]}/${CORE}/releases/latest/download/${CORE}.zip"
+	fi
 
 	# --- 📄 2.5. HYBRID DOCS PROMOTION & FALLBACKS
 	if [[ "$script_id" == "$CORE" ]]; then
@@ -243,36 +259,29 @@ for script_id in $PACKS; do
 		ST_GIT="https://github.com/lost-scripts/${script_id}"
 		
 		if git -C "$TARGET_DIR" remote get-url origin >/dev/null 2>&1; then # Shield de descargas con check de remoto
-			ST_DLS_IMG="<img src='https://img.shields.io/github/downloads/lost-scripts/${script_id}/total?logo=data:image/svg%2bxml;base64,${ICON_DL_B64}&color=blue&label=' height='20'>"
+			ST_DLS_IMG="<img src='https://img.shields.io/github/downloads/lost-scripts/${script_id}/total?logo=data:image/svg%2bxml;base64,${ICON_DL_B64}&color=blue&label=' alt='Download' title='Download: ${script_id}.zip' height='24'>"
 		else
-			ST_DLS_IMG="<span title='Repository not published yet'>🔜</span>"
+			ST_DLS_IMG="<img src='https://img.shields.io/badge/Soon…-inactive.svg' alt='Download' title='Download: Unavailable' height='24'>"
 		fi
 
-		ST_CARD="<table width='100%' border='1' class='card' style='margin-bottom: 1em; border: 1px solid #333;'>
+		ST_CARD="<table width='100%' border='2' class='card'>
 			<tr>
-				<td align='center' width='96'><a href='${ST_GIT}'>${PICTURE_TAG}</a></td>
-				<td width='1920'><a href='${ST_GIT}'><strong>${v_name}</strong></a><br>${v_dsc:-$v_dsc_plain}</td>
-				<td align='center' width='120'><a href='${ST_GIT}'>${ST_DLS_IMG}</a></td>
+				<td align='center' width='120'><a href='${ST_GIT}'>${PICTURE_TAG}</a></td>
+				<td width='960'><a href='${ST_GIT}'><strong>${v_name}</strong></a><br>${v_dsc:-$v_dsc_plain}</td>
+				<td align='center' width='240'><a href='${ST_GIT}'>${ST_DLS_IMG}</a></td>
 			</tr>
 		</table>"
 		echo "$ST_CARD" >> "$STAR_TBL_TMP"
 	fi
 
-	# 💉 INYECCIÓN ÚNICA (Solo cuando el bucle llega al Core)
-	if [[ "$script_id" == "$CORE" && -s "$STAR_TBL_TMP" ]]; then
+	if [[ "$script_id" == "$CORE" && -s "$STAR_TBL_TMP" ]]; then # Single Injection (Only when the loop reaches the Core)
 		CORE_READ="$TARGET_DIR/docs/README.md"
-		
-		# Verificación de seguridad para evitar el error de sed
-		if [[ -n "${S_START:-}" && -n "${S_END:-}" ]] && grep -q "$S_START" "$CORE_READ"; then
-			# 1. Limpiamos con una sintaxis más segura
-			sed -i "/$S_START/,/$S_END/ { /$S_START/b; /$S_END/b; d; }" "$CORE_READ"
-			
-			# 2. Inyectamos el contenido
-			sed -i "/$S_START/r $STAR_TBL_TMP" "$CORE_READ"
-			
-			# 3. Limpieza final de marcas
-			sed -i "/$S_START/d; /$S_END/d" "$CORE_READ"
-			
+
+		if [[ -n "${S_START:-}" && -n "${S_END:-}" ]] && grep -q "$S_START" "$CORE_READ"; then # Security check to avoid sed error
+			sed -i "/$S_START/,/$S_END/ { /$S_START/b; /$S_END/b; d; }" "$CORE_READ" # 1. Clean with a safer syntax
+			sed -i "/$S_START/r $STAR_TBL_TMP" "$CORE_READ" # 2. Inject the content
+			sed -i "/$S_START/d; /$S_END/d" "$CORE_READ" # 3. Final cleaning of marks
+
 			echo "    ⭐ Featured Cards injected & cleaned in Core's README."
 		else
 			echo "    ⚠️  Skip Starred: Markers not found in $CORE_READ"
@@ -313,7 +322,7 @@ for script_id in $PACKS; do
 			else
 				zip_url="https://${FORGE[BASE]}/${FORGE[USER]}/${CORE}/releases/latest/download/${CORE}.zip"
 			fi
-			if [[ "$v_skip" == false ]] || [[ "$script_id" == "$CORE" ]]; then
+			if [[ "$v_skip" == false ]]; then
 				echo "$script_id|$v_name|$v_ver|$v_bld|$v_dsc|$v_tar|$zip_url|$v_stg|$PICTURE_TAG" >> "$CATALOG_DATA" # Unless skipped, records are always written, whether it's DRY RUN or not
 			fi
 
@@ -374,59 +383,30 @@ if [ -s "$CATALOG_DATA" ]; then
 	LINES=$(grep -v "^${CORE}|" "$CATALOG_DATA" | sort -t'|' -k2) || true # ...then the others ordered by name (column 2)
 
 	{ echo "$LINE"; echo "$LINES"; } | while IFS="|" read -r id name ver bld dsc tar url stg pic; do
-		[[ -z "$id" ]] && continue
+		[[ -z "$id" ]] || [[ "$id" == " " ]] && continue # Extra security for empty lines... `[[ "$skip" == true ]] && [[ "$id" != "$CORE" ]] && continue`
 
-		# --- 🕸 EXCLUSION FILTERS
-		is_excluded=false
-		for skip in "${CATALOG_EXCLUDE[@]}"; do
-			[[ "$stg" == "$skip" ]] && is_excluded=true && break
-		done
-		[[ "$is_excluded" == true ]] && continue # TODO (Once the Core is ready?): `[[ "$is_excluded" == true ]] && [[ "$id" != "$CORE" ]] && continue`
-
-		# --- 🔍 TRIPLE ICON/FALLBACK LOGIC (Hybrid structure)
 		PACK_LNK="${URL_BASE}/${id}/"
-		ASSETS_DIR="./docs/${id}/assets"
-		ICON_MAIN="${URL_RAW_MONO}/docs/assets/icon_unk.png"
-		ICON_DARK="${URL_RAW_MONO}/docs/assets/icon_unk_dark.png"
-		ICON_LIGHT="${URL_RAW_MONO}/docs/assets/icon_unk_light.png"
-		ICON_DL="https://img.shields.io/badge/-%20-blue?style=flat&logo=data:image/svg%2bxml;base64,${ICON_DL_B64}&logoColor=white" # Usamos logoColor=white para asegurar el contraste y un label vacío para que parezca un botón cuadrado
-
-		if [ -f "$ASSETS_DIR/icon.png" ]; then # We check for the presence of package-specific icons
-			ICON_MAIN="${URL_RAW_MONO}/docs/${id}/assets/icon.png" # The default icon will always be the original Moho icon
-			if [ -f "$ASSETS_DIR/icon_dark.png" ]; then # We look for an optimized version for DARK
-				ICON_DARK="${URL_RAW_MONO}/docs/${id}/assets/icon_dark.png"
-			else
-				ICON_DARK="$ICON_MAIN" # Fallback to the original if there is no dark
-			fi
-			if [ -f "$ASSETS_DIR/icon_light.png" ]; then # We look for an optimized version for LIGHT
-				ICON_LIGHT="${URL_RAW_MONO}/docs/${id}/assets/icon_light.png"
-			else
-				ICON_LIGHT="$ICON_MAIN" # Fallback to the original if there is no light
-			fi
-		fi
-
-		# --- 🖼️ PICTURE TAG GENERATION (GitHub/HUGO consistent)
-		PICTURE_TAG="<picture><source media='(prefers-color-scheme: dark)' srcset='${ICON_DARK}'><source media='(prefers-color-scheme: light)' srcset='${ICON_LIGHT}'><img src='${ICON_MAIN}' width='48' alt='Icon'></picture>"
+		STAGE_LABEL=""; [[ "$stg" != "STABLE" ]] && STAGE_LABEL="<strong><sub><ins>$stg</ins></sub></strong>"
 
 		# --- ✨ DISPLAY CUSTOMIZATION (Core vs. Others)
-		STAGE_LABEL=""; [[ "$stg" != "STABLE" ]] && STAGE_LABEL="<strong><sub><ins>$stg</ins></sub></strong>" # 🎨 Inject the Stage here if it's not STABLE
 		if [[ "$id" == "$CORE" ]]; then
-			DISPLAY_NAME="<a href='${PACK_LNK}' title='Go to \"$CORE\" repo...'><strong><em>LS&nbsp;<sup>Core</sup></em></strong></a>"
+			DISPLAY_NAME="<a href='${PACK_LNK}'><strong><em>LS&nbsp;<sup>Core</sup></em></strong></a>"
 			DISPLAY_DESC="<strong><em><sup>${dsc}</sup></em></strong><br><sub>𝓲 </sub><em><sub title='Build: $bld'>v$ver</sub> ${STAGE_LABEL}<sub> For Moho $tar</sub></em>"
 		else
-			DISPLAY_NAME="<a href='${PACK_LNK}' title='Go to \"$id\" repo...' style='text-decoration: none'><strong><sup>$name</sup></strong></a>"
+			DISPLAY_NAME="<a href='${PACK_LNK}' style='text-decoration: none'><strong><sup>$name</sup></strong></a>"
 			DISPLAY_DESC="<sup>$dsc</sup><br><sub>𝓲 </sub><em><sub title='Build: $bld'>v$ver</sub> ${STAGE_LABEL}<sub> For Moho $tar</sub></em>"
 		fi
 
 		# --- 📝 ROW GENERATION (Atomic HTML)
 		ROW="<tr>
-			<td valign='middle' align='center'><a href='${PACK_LNK}' title='Go to \"$id\" repo...'>$pic</a></td>
+			<td valign='middle' align='center'><a href='${PACK_LNK}'>$pic</a></td>
 			<td valign='middle' align='center'>${DISPLAY_NAME}</td>
 			<td valign='middle'>${DISPLAY_DESC}</td>
 			<td valign='middle' align='center'><a href='${url}' title='Download: ${id}.zip'><img src='${ICON_DL}' alt='Download'></a></td>
 		</tr>"
 		echo "$ROW" >> "$CAT_TMP_TBL"
 	done
+
 	echo "</tbody></table>" >> "$CAT_TMP_TBL"
 	echo -e "\n<p align='right'><sub>𝓲 <em>Generated by <strong>${INFO[NAME]}</strong><sup> v${INFO[VERSION]}</sup> @ <code>$(date +'%Y%m%d')</code></em></sub></p>" >> "$CAT_TMP_TBL"
 fi
