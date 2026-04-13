@@ -20,7 +20,7 @@ declare -r  STRIP_YAML=true
 declare -ar ZIPIGNORE=( "README.md" "LICENSE" "docs" "docs/*" "*/docs/*" "*.zip" )
 declare -ar CATALOG_EXCLUDE=("DRAFT" "HIDDEN" "PRIVATE" "LEGACY")
 declare --  CATALOG_DATA=$(mktemp)
-declare --  PUBLISH=false # Requires the script folder has a repo and 'origin' remote
+declare --  PUBLISH=false # Requires that the pack has a repo and 'origin' remote
 declare -A  REPORT=( [DUR]=0 [TOT]=0 [LOC]=0 [PUB]=0 [ISS]=0)
 declare --  T_R='\e[1;31m'; T_G='\e[1;32m'; T_Y='\e[1;33m'; T_B='\e[1;34m'; T_D='\e[2m'; T_S='\e[1m' ; T_U='\e[4m'; T_C='\e['; T_N='\e[0m' # Text: Red; Green; Yellow; Blue; Dim; Strong, UL; Custom; Normal (reset)
 readonly ICON_DL_B64="PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjZWVlIiBkPSJNMjg4IDMyYTMyIDMyIDAgMSAwLTY0IDB2MjQzbC03My03NGEzMiAzMiAwIDAgMC00NiA0NmwxMjggMTI4YzEzIDEyIDMzIDEyIDQ2IDBsMTI4LTEyOGEzMiAzMiAwIDAgMC00Ni00NmwtNzMgNzRWMzJ6TTY0IDM1MmMtMzUgMC02NCAyOS02NCA2NHYzMmMwIDM1IDI5IDY0IDY0IDY0aDM4NGMzNSAwIDY0LTI5IDY0LTY0di0zMmMwLTM1LTI5LTY0LTY0LTY0SDM0N2wtNDYgNDVhNjQgNjQgMCAwIDEtOTAgMGwtNDUtNDVINjR6bTM2OCA1NmEyNCAyNCAwIDEgMSAwIDQ4IDI0IDI0IDAgMSAxIDAtNDh6Ii8+PC9zdmc+"
@@ -135,8 +135,9 @@ for script_id in $PACKS; do
 		done < <(find "$TARGET_DIR" -name "${script_id}.lua" -type f)
 	fi
 
-	# --- 🥢 2.4. UNIVERSAL METADATA COLLECTION
-	v_name=$(echo "$script_id" | sed 's/ls_//g; s/_/ /g' | awk '{for(i=1;i<=NF;i++)sub(/./,toupper(substr($i,1,1)),$i)}1'); v_name="${v_name:-${script_id:-Unknown}}"; [[ "$script_id" == "$CORE" ]] && v_name="${v_name^^}"
+	# --- 🥢 2.4. UNIVERSAL METADATA COLLECTION & TREATMENT (Customhouse)
+	v_name=$(echo "$script_id" | sed 's/ls_//g; s/_/ /g' | awk '{for(i=1;i<=NF;i++)sub(/./,toupper(substr($i,1,1)),$i)}1')
+	v_name="${v_name:-${script_id:-Unknown}}"; [[ "$script_id" == "$CORE" ]] && v_name="${v_name^^}"
 	if [[ -n "$header" ]]; then # Extract everything in one go so it's available afterwards
 		v_ver=$(echo "$header" | grep "${VARS[VER]}" | sed -n "${VAREXS[S]}") || v_ver="0.0.0"
 		v_stg=$(echo "$header" | grep "${VARS[STG]}" | sed -n "${VAREXS[S]}") || v_stg="STABLE"; v_stg="${v_stg// /}" # Clean spaces for safety reasons
@@ -145,7 +146,6 @@ for script_id in $PACKS; do
 		v_dsc=$(echo "$header" | grep "${VARS[DSC]}" | sed -n "${VAREXS[S]}") || v_dsc=""
 	fi
 
-	# --- ↩️ 2.4a FALLBACKS & MORE...
 	if [[ -z "$v_dsc" ]]; then # Description fallback
 		if [[ "$script_id" == "$CORE" ]]; then
 			v_dsc="Essential shared resources and core modules required for the <a href='https://lost-scripts.github.io/' title='Go to Lost Scripts&trade; website...'>Lost Scripts</a>&trade; project to work with <a href='https://moho.lostmarble.com/' title='Go to Moho&reg; homepage...'>MOHO</a> Animation Software."
@@ -156,11 +156,11 @@ for script_id in $PACKS; do
 	v_dsc_plain=$(echo "$v_dsc" | sed 's/<[^>]*>//g') # Provide an HTML-free description
 	v_stg_warn="$v_ver"; [[ "$v_stg" != "STABLE" ]] && v_stg_warn="${v_ver}-${v_stg}" # E.g. 1.2.0-BETA
 
-	# --- 🚦 2.4b GLOBAL EXCLUSION FILTER
+	# --- 🚦 2.4a GLOBAL EXCLUSION FILTER
 	for skip in "${CATALOG_EXCLUDE[@]}"; do
 		if [[ "$v_stg" == "$skip" ]]; then
 			#if [[ "$script_id" == "$CORE" ]]; then
-				#v_skip=false  # Core exception: It's never skipped (Uncomment everything to revert) 
+				#v_skip=false # Core exception: It's never skipped (TODO: Uncomment everything to revert when Core is ready!) 
 			#else
 				v_skip=true
 			#fi
@@ -168,7 +168,7 @@ for script_id in $PACKS; do
 		fi
 	done
 
-	# --- 🖼️ 2.4c INTELLIGENT ICON LOGIC (Hybrid GitHub/HUGO Support)
+	# --- 🖼️ 2.4b INTELLIGENT ICON LOGIC (Hybrid GitHub/HUGO Support)
 	ASSETS_DIR="./docs/${script_id}/assets"
 	ICON_MAIN="${URL_RAW_MONO}/docs/assets/icon_unk.png"
 	ICON_DARK="${URL_RAW_MONO}/docs/assets/icon_unk_dark.png"
@@ -181,7 +181,7 @@ for script_id in $PACKS; do
 	fi
 	PICTURE_TAG="<picture><source media='(prefers-color-scheme: dark)' srcset='${ICON_DARK}'><source media='(prefers-color-scheme: light)' srcset='${ICON_LIGHT}'><img src='${ICON_MAIN}' width='48' alt='Icon' class='colorize'></picture>"
 
-	# --- 🔗 2.4d UNIVERSAL DOWNLOAD URL
+	# --- 🔗 2.4c UNIVERSAL DOWNLOAD URL
 	if git -C "$TARGET_DIR" remote get-url origin >/dev/null 2>&1; then # REMOTE SCENARIO: Check if there are version tags
 		if git -C "$TARGET_DIR" tag 2>/dev/null | grep -Eq '^v?[0-9]+\.[0-9]+\.[0-9]+'; then
 			v_zip_url="https://${FORGE[BASE]}/${FORGE[USER]}/$script_id/releases/latest/download/${script_id}.zip"
@@ -206,9 +206,9 @@ for script_id in $PACKS; do
 	if [ "$STRIP_YAML" = true ] && [ -d "$TARGET_DIR/docs" ]; then # Strip front matter (YAML) & leadings
 		find "$TARGET_DIR/docs" -name "*.md" -exec perl -0777 -pi -e 's/\A---\r?\n.*?---\r?\n\s*//s' {} + 2>/dev/null || true
 	fi
-	[ ! -f "$TARGET_DIR/LICENSE" ] && [ -f "$CORE_DEST/LICENSE" ] && cp "$CORE_DEST/LICENSE" "$TARGET_DIR/" || true # Ensure that there is a LICENSE
+	[ ! -f "$TARGET_DIR/LICENSE" ] && [ -f "$CORE_DEST/LICENSE" ] && cp "$CORE_DEST/LICENSE" "$TARGET_DIR/" || true # Ensure that there's a LICENSE
 
-	# --- 🧹 2.6. FINALIZING + CLEANUP: Purge orphaned files in target (Scan the standard Monorepo folders at the destination and if the file doesn't exist in the Monorepo, delete it)
+	# --- 🧹 2.6. FINALIZING + CLEANUP: Purge orphaned files in target (Scan standard Monorepo folders and delete any not present in the source Monorepo)
 	for folder in "${SYNC[@]}"; do
 		[[ "$folder" == "docs" ]] && continue # Skip docs folder!
 		if [ -d "$TARGET_DIR/$folder" ]; then
@@ -220,11 +220,10 @@ for script_id in $PACKS; do
 			done
 		fi
 	done
-	#echo -e "📦 Finalizing + Cleaning Package: $TARGET_DIR"
-	find "$TARGET_DIR" -type d -empty -not -path "*/.git*" -delete 2>/dev/null || true
+	find "$TARGET_DIR" -type d -empty -not -path "*/.git*" -delete 2>/dev/null || true #echo -e "📦 Finalizing + Cleaning Package: $TARGET_DIR"
 
 	# --- 🖼️ 2.7. HEADER INJECTION (Per-Pack basis)
-	TARGET_FILE="$TARGET_DIR/docs/README.md" # Note: 2.4 already renamed index to README
+	TARGET_FILE="$TARGET_DIR/docs/README.md" # Note: Already renamed index to README (2.5)
 	H_START='<!-- HEADER_START -->'; H_END='<!-- HEADER_END -->'
 
 	if [ -f "$TARGET_FILE" ] && grep -q "$H_START" "$TARGET_FILE" && grep -q "$H_END" "$TARGET_FILE"; then
@@ -245,16 +244,16 @@ for script_id in $PACKS; do
 		HEADER_HTML="<table id='top' width='100%' border='0'><tr><td align='left' valign='middle' width='120'><picture><source media='(prefers-color-scheme: dark)' srcset='${AS_DIR}/icon_dark.png'><source media='(prefers-color-scheme: light)' srcset='${AS_DIR}/icon_light.png'><img src='${AS_DIR}/icon.png' width='48' alt='Icon' title='${v_name}: ${v_dsc_plain}' class='colorize'></picture></td><td align='right' valign='middle' width='1920' nowrap>${DL_WID} ${RE_WID} ${TA_WID}</td></tr></table>"
 
 		# 💉 Surgical Injection (Direct & clean)
-		sed -i "\|$H_START|,\|$H_END|{ \|$H_START|b; \|$H_END|b; d; }" "$TARGET_FILE" # 1. Delete content between marker
+		sed -i "\|$H_START|,\|$H_END|{ \|$H_START|b; \|$H_END|b; d; }" "$TARGET_FILE" # 1. Delete content between markers
 		sed -i "\|$H_START|a $HEADER_HTML" "$TARGET_FILE" # 2. Append the HTML table right after the START marker
 		
-		# ✨ FINAL CLEANUP: Remove the marks from the final README, where they're no longer needed
+		# ✨ Final Cleanup (Remove marks from the final README where they're no longer needed)
 		sed -i "/<!-- HEADER_START -->/d; /<!-- HEADER_END -->/d" "$TARGET_FILE"
 		
 		echo "    ✅ Header injected & Cleaned: $script_id"
 	fi
 
-	# --- ⭐ 2.8 STARRED/FEATURED CARD GENERATOR
+	# --- 🌟 2.8 STARRED/FEATURED CARD GENERATOR
 	if [[ "$v_skip" == false ]] && [[ -n "$STAR_RAW" && ",$STAR_RAW," == *",$script_id,"* ]]; then
 		ST_GIT="https://github.com/lost-scripts/${script_id}"
 		
@@ -284,7 +283,7 @@ for script_id in $PACKS; do
 
 			echo "    ⭐ Featured Cards injected & cleaned in Core's README."
 		else
-			echo "    ⚠️  Skip Starred: Markers not found in $CORE_READ"
+			echo "    ⚠️  ${T_R}Skip Starred:${T_N} Markers not found in $CORE_READ"
 		fi
 	fi
 
@@ -300,7 +299,7 @@ for script_id in $PACKS; do
 		HAS_REMOTE=false
 		if git remote 2>/dev/null | grep -q "origin"; then
 			HAS_REMOTE=true
-		elif [ "$PUBLISH" = true ] && [ -d "$TARGET_DIR/.git" ]; then # We only try to add remote if we want to publish.
+		elif [ "$PUBLISH" = true ] && [ -d "$TARGET_DIR/.git" ]; then # Only try to add remote if we want to publish
 			REMOTE_URL="${FORGE[PREF]}:${FORGE[USER]}/${script_id}.git"
 			echo -e "    ⚠️  ${T_Y}Warning:${T_N} No remote 'origin' detected..."
 			read -n 1 -p "    🔗 Add '$REMOTE_URL' and push? (y/n): " answer < /dev/tty; echo ""
@@ -316,22 +315,17 @@ for script_id in $PACKS; do
 		# 🗳️ B. DATA COLLECTION FOR CATALOG & SYNC (As long as the pack has a remote or it's the Core!)
 		if [ "$HAS_REMOTE" = true ] || [[ "$script_id" == "$CORE" ]]; then
 			# B1. COLLECTION (Whenever there is a remote, publishing or not)
-			echo "DEBUG: id=$script_id | stage=$v_stg | skip=$v_skip"
 			if [[ "$v_skip" == false ]]; then
 				echo "$script_id|$v_name|$v_ver|$v_bld|$v_dsc|$v_tar|$v_zip_url|$v_stg|$PICTURE_TAG" >> "$CATALOG_DATA" # Unless skipped, records are always written, whether it's DRY RUN or not
 			fi
 
-			# B. SYNC LOGIC (Only if PUBLISH is true and there is remote)
+			# B2. SYNC LOGIC (Only if PUBLISH is true and there is remote)
 			if [ "$PUBLISH" = true ] && [ "$HAS_REMOTE" = true ]; then
 				echo "    🌐 [Git] SYNCING: $script_id"
 				git add .
 				
-				# B2a. Check if there are changes in the stage (index)
-				HAS_CHANGES=false; ! git diff --cached --quiet && HAS_CHANGES=true
-
-				# B2b. Check if the repo is new (it doesn't have an initial commit on the remote)
-				IS_NEW=false; ! git rev-parse @{u} >/dev/null 2>&1 && IS_NEW=true
-
+				HAS_CHANGES=false; ! git diff --cached --quiet && HAS_CHANGES=true # B2a. Check if there are changes in the stage (index)
+				IS_NEW=false; ! git rev-parse @{u} >/dev/null 2>&1 && IS_NEW=true # B2b. Check if the repo is new (it doesn't have an initial commit on the remote)
 				if [ "$HAS_CHANGES" = true ] || [ "$IS_NEW" = true ]; then
 					if [ "$IS_NEW" = true ] && [ "$HAS_CHANGES" = false ]; then # Decide the message: "Initial upload" if new and without stage changes, or "DNA-Sync" from the monorepo if there are changes
 						MSG="Initial upload"
@@ -364,13 +358,12 @@ for script_id in $PACKS; do
 	fi
 done
 
-# --- 📃 3. GENERATING CATALOG
+# --- 📃 3. CATALOG GENERATION
 echo "--- 📝 Updating Monorepo's Catalog ---"
 CAT_TMP_TBL=$(mktemp); CAT_START='<!-- CATALOG_START -->'; CAT_END='<!-- CATALOG_END -->'
 
 # 3a. Table Header (Remote icons so they're always visible)
 echo "<table id='catalog' width='100%' border='0'><thead><tr><th align='center' width='96'>Icon</th><th align='center' width='120'>Name</th><th align='center' width='1920'>Description</th><th align='center' title='Direct Download Links'>📦</th></tr></thead><tbody>" > "$CAT_TMP_TBL"
-
 
 # 3b. Reorder and Process Collected Data
 if [ -s "$CATALOG_DATA" ]; then
@@ -378,7 +371,7 @@ if [ -s "$CATALOG_DATA" ]; then
 	LINES=$(grep -v "^${CORE}|" "$CATALOG_DATA" | sort -t'|' -k2) || true # ...then the others ordered by name (column 2)
 
 	{ echo "$LINE"; echo "$LINES"; } | while IFS="|" read -r id name ver bld dsc tar url stg pic; do
-		[[ -z "$id" ]] || [[ "$id" == " " ]] && continue # Extra security for empty lines... `[[ "$skip" == true ]] && [[ "$id" != "$CORE" ]] && continue`
+		[[ -z "$id" ]] || [[ "$id" == " " ]] && continue # Extra security for empty lines...
 
 		PACK_LNK="${URL_BASE}/${id}/"
 		STAGE_LABEL=""; [[ "$stg" != "STABLE" ]] && STAGE_LABEL="<strong><sub><ins>$stg</ins></sub></strong>"
@@ -422,7 +415,7 @@ fi
 rm -f "$CAT_TMP_TBL" "$CATALOG_DATA"
 [ -f "$STAR_TBL_TMP" ] && rm -f "$STAR_TBL_TMP"
 
-# 4. ENDING! RESTART/SHELL/EXIT?
+# 4. ENDING: RESTART/SHELL/EXIT?
 echo -e "--- 🏁 ${T_B}DONE!${T_N} (In: $(printf '%01d:%02d' $((SECONDS/60)) $((SECONDS%60))) | Total: ${REPORT[TOT]} | Local: ${REPORT[LOC]} | Public: ${REPORT[PUB]} | $([[ ${REPORT[ISS]} -gt 0 ]] && echo -ne "${T_R}" || echo -ne "${T_N}")Issues: ${REPORT[ISS]}${T_N})"
 echo -ne "--- ？ ${T_S}R${T_N}estart? (${T_S}Y${T_N}es/${T_S}S${T_N}hell/${T_S}Any${T_N} to exit): "; read -n 1 action; echo ""
 if [[ "$action" =~ ^[yYrR]$ ]]; then
