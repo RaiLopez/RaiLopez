@@ -245,14 +245,14 @@ for script_id in $PACKS; do
 		if git -C "$TARGET_DIR" remote get-url origin >/dev/null 2>&1; then # Shield de descargas con check de remoto
 			ST_DLS_IMG="<img src='https://img.shields.io/github/downloads/lost-scripts/${script_id}/total?logo=data:image/svg%2bxml;base64,${ICON_DL_B64}&color=blue&label=' height='20'>"
 		else
-			ST_DLS_IMG="<sub title='Repository not published yet'>Soon</sub>"
+			ST_DLS_IMG="<span title='Repository not published yet'>🔜</span>"
 		fi
 
-		ST_CARD="<table width='100%' border='0' style='margin-bottom: 1em; border: 1px solid #333;'>
+		ST_CARD="<table width='100%' border='1' class='card' style='margin-bottom: 1em; border: 1px solid #333;'>
 			<tr>
 				<td align='center' width='96'><a href='${ST_GIT}'>${PICTURE_TAG}</a></td>
-				<td><a href='${ST_GIT}'><strong>${v_name}</strong></a><br>${v_dsc:-$v_dsc_plain}</td>
-				<td align='right' width='120'><a href='${ST_GIT}'>${ST_DLS_IMG}</a></td>
+				<td width='1920'><a href='${ST_GIT}'><strong>${v_name}</strong></a><br>${v_dsc:-$v_dsc_plain}</td>
+				<td align='center' width='120'><a href='${ST_GIT}'>${ST_DLS_IMG}</a></td>
 			</tr>
 		</table>"
 		echo "$ST_CARD" >> "$STAR_TBL_TMP"
