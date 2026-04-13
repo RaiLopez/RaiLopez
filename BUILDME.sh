@@ -105,7 +105,7 @@ for script_id in $PACKS; do
 	fi
 
 	# --- 🔍 2.3. INJECT DEPENDENCIES & METADATA EXTRACTION (The "Smart Search" Logic)
-	header="" v_name="" v_ver="0.0.0" v_tar="" v_stg="STABLE" v_dsc="" v_dsc_plain="" # Atomic reset
+	header="" v_name="" v_ver="0.0.0" v_tar="" v_stg="STABLE" v_dsc="" v_dsc_plain="" v_skip=false # Atomic reset
 	if [[ "$script_id" == "$CORE" ]]; then
 		MASTER_CORE="./Utility/ls_utilities.lua"
 		if [ -f "$MASTER_CORE" ]; then
@@ -144,6 +144,8 @@ for script_id in $PACKS; do
 		v_tar=$(echo "$header" | grep "${VARS[TAR]}" | sed -n "${VAREXS[S]}") || v_tar=""
 		v_dsc=$(echo "$header" | grep "${VARS[DSC]}" | sed -n "${VAREXS[S]}") || v_dsc=""
 	fi
+
+	# --- ↩️ 2.4a FALLBACKS & MORE...
 	if [[ -z "$v_dsc" ]]; then # Description fallback
 		if [[ "$script_id" == "$CORE" ]]; then
 			v_dsc="Essential shared resources and core modules required for the <a href='https://lost-scripts.github.io/' title='Go to Lost Scripts&trade; website...'>Lost Scripts</a>&trade; project to work with <a href='https://moho.lostmarble.com/' title='Go to Moho&reg; homepage...'>MOHO</a> Animation Software."
@@ -153,6 +155,26 @@ for script_id in $PACKS; do
 	fi
 	v_dsc_plain=$(echo "$v_dsc" | sed 's/<[^>]*>//g') # Provide an HTML-free description
 	v_stg_warn="$v_ver"; [[ "$v_stg" != "STABLE" ]] && v_stg_warn="${v_ver}-${v_stg}" # E.g. 1.2.0-BETA
+
+	# --- 🚦 2.4b GLOBAL EXCLUSION FILTER
+	for skip in "${CATALOG_EXCLUDE[@]}"; do
+		if [[ "$v_stg" == "$skip" ]]; then
+			v_skip=true
+			break
+		fi
+	done
+
+	# --- 🖼️ 2.4c INTELLIGENT ICON LOGIC (Hybrid Support)
+	ASSETS_DIR="./docs/${script_id}/assets"
+	ICON_MAIN="${URL_RAW_MONO}/docs/assets/icon_unk.png"
+	ICON_DARK="${URL_RAW_MONO}/docs/assets/icon_unk_dark.png"
+	ICON_LIGHT="${URL_RAW_MONO}/docs/assets/icon_unk_light.png"
+	if [ -f "$ASSETS_DIR/icon.png" ]; then # Si existen iconos específicos en la carpeta del pack, los usamos
+		ICON_MAIN="${URL_RAW_MONO}/docs/${script_id}/assets/icon.png"
+		[ -f "$ASSETS_DIR/icon_dark.png" ] && ICON_DARK="${URL_RAW_MONO}/docs/${script_id}/assets/icon_dark.png" || ICON_DARK="$ICON_MAIN"
+		[ -f "$ASSETS_DIR/icon_light.png" ] && ICON_LIGHT="${URL_RAW_MONO}/docs/${script_id}/assets/icon_light.png" || ICON_LIGHT="$ICON_MAIN"
+	fi
+	PICTURE_TAG="<picture><source media='(prefers-color-scheme: dark)' srcset='${ICON_DARK}'><source media='(prefers-color-scheme: light)' srcset='${ICON_LIGHT}'><img src='${ICON_MAIN}' width='48' alt='Icon' class='colorize'></picture>"
 
 	# --- 📄 2.5. HYBRID DOCS PROMOTION & FALLBACKS
 	if [[ "$script_id" == "$CORE" ]]; then
@@ -217,28 +239,22 @@ for script_id in $PACKS; do
 	fi
 
 	# --- ⭐ 2.8 STARRED/FEATURED CARD GENERATOR
-	if [[ -n "$STAR_RAW" && ",$STAR_RAW," == *",$script_id,"* ]]; then
-		ST_IMG="https://raw.githubusercontent.com/RaiLopez/${script_id}/main/docs/assets/icon.png"
+	if [[ "$v_skip" == false ]] && [[ -n "$STAR_RAW" && ",$STAR_RAW," == *",$script_id,"* ]]; then
 		ST_GIT="https://github.com/lost-scripts/${script_id}"
 		
-		# Usamos v_dsc_plain si v_dsc falla, para asegurar que no quede vacío
-		FINAL_DSC="${v_dsc:-$v_dsc_plain}"
+		if git -C "$TARGET_DIR" remote get-url origin >/dev/null 2>&1; then # Shield de descargas con check de remoto
+			ST_DLS_IMG="<img src='https://img.shields.io/github/downloads/lost-scripts/${script_id}/total?logo=data:image/svg%2bxml;base64,${ICON_DL_B64}&color=blue&label=' height='20'>"
+		else
+			ST_DLS_IMG="<sub title='Repository not published yet'>Soon</sub>"
+		fi
 
 		ST_CARD="<table width='100%' border='0' style='margin-bottom: 1em; border: 1px solid #333;'>
 			<tr>
-				<td align='center' width='96'>
-					<a href='${ST_GIT}'><img src='${ST_IMG}' width='48' class='colorize'></a>
-				</td>
-				<td>
-					<a href='${ST_GIT}'><strong>${v_name}</strong></a><br>
-					${FINAL_DSC}
-				</td>
-				<td align='right' width='120'>
-					<a href='${ST_GIT}'><img src='https://img.shields.io/github/downloads/lost-scripts/${script_id}/total?logo=data:image/svg%2bxml;base64,${ICON_DL_B64}&color=blue&label=' height='20'></a>
-				</td>
+				<td align='center' width='96'><a href='${ST_GIT}'>${PICTURE_TAG}</a></td>
+				<td><a href='${ST_GIT}'><strong>${v_name}</strong></a><br>${v_dsc:-$v_dsc_plain}</td>
+				<td align='right' width='120'><a href='${ST_GIT}'>${ST_DLS_IMG}</a></td>
 			</tr>
 		</table>"
-
 		echo "$ST_CARD" >> "$STAR_TBL_TMP"
 	fi
 
@@ -297,7 +313,9 @@ for script_id in $PACKS; do
 			else
 				zip_url="https://${FORGE[BASE]}/${FORGE[USER]}/${CORE}/releases/latest/download/${CORE}.zip"
 			fi
-			echo "$script_id|$v_name|$v_ver|$v_bld|$v_dsc|$v_tar|$zip_url|$v_stg" >> "$CATALOG_DATA" # Records are always written, whether it's DRY RUN or not
+			if [[ "$v_skip" == false ]] || [[ "$script_id" == "$CORE" ]]; then
+				echo "$script_id|$v_name|$v_ver|$v_bld|$v_dsc|$v_tar|$zip_url|$v_stg|$PICTURE_TAG" >> "$CATALOG_DATA" # Unless skipped, records are always written, whether it's DRY RUN or not
+			fi
 
 			# B. SYNC LOGIC (Only if PUBLISH is true and there is remote)
 			if [ "$PUBLISH" = true ] && [ "$HAS_REMOTE" = true ]; then
@@ -355,7 +373,7 @@ if [ -s "$CATALOG_DATA" ]; then
 	LINE=$(grep "^${CORE}|" "$CATALOG_DATA") || true # Group the Core first and...
 	LINES=$(grep -v "^${CORE}|" "$CATALOG_DATA" | sort -t'|' -k2) || true # ...then the others ordered by name (column 2)
 
-	{ echo "$LINE"; echo "$LINES"; } | while IFS="|" read -r id name ver bld dsc tar url stg; do
+	{ echo "$LINE"; echo "$LINES"; } | while IFS="|" read -r id name ver bld dsc tar url stg pic; do
 		[[ -z "$id" ]] && continue
 
 		# --- 🕸 EXCLUSION FILTERS
@@ -402,7 +420,7 @@ if [ -s "$CATALOG_DATA" ]; then
 
 		# --- 📝 ROW GENERATION (Atomic HTML)
 		ROW="<tr>
-			<td valign='middle' align='center'><a href='${PACK_LNK}' title='Go to \"$id\" repo...'>$PICTURE_TAG</a></td>
+			<td valign='middle' align='center'><a href='${PACK_LNK}' title='Go to \"$id\" repo...'>$pic</a></td>
 			<td valign='middle' align='center'>${DISPLAY_NAME}</td>
 			<td valign='middle'>${DISPLAY_DESC}</td>
 			<td valign='middle' align='center'><a href='${url}' title='Download: ${id}.zip'><img src='${ICON_DL}' alt='Download'></a></td>
