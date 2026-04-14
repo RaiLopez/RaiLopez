@@ -1,11 +1,11 @@
 <!-- mIxEd style head (quite simple with modes and full width in GitHub) [![h-icon]](#!) -->
-<table id="top" width="100%" border="0"><tr><td align="left" valign="middle" width="96">
+<table id="top" width="100%" border="0"><tr><td align="center" valign="middle" width="96">
 <picture>
 	<source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/RaiLopez/RaiLopez/refs/heads/main/docs/assets/icon_dark.png">
 	<source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/RaiLopez/RaiLopez/refs/heads/main/docs/assets/icon_light.png">
-	<img src="https://raw.githubusercontent.com/RaiLopez/RaiLopez/refs/heads/main/docs/assets/icon.png" width="96" alt="Icon" title="Lost Scripts Project">
+	<img src="https://raw.githubusercontent.com/RaiLopez/RaiLopez/refs/heads/main/docs/assets/icon.png" width="48" alt="Icon" title="Lost Scripts Project">
 </picture>
-</td><td align="right" valign="middle" width="1920" nowrap>
+</td><td align="right" valign="middle" width="916" nowrap>
 
 [![h-shield1-i]][h-shield1-a] [![h-shield2-i]][h-shield2-a] [![h-shield3-i]][h-shield3-a]
 </td></tr></table>
