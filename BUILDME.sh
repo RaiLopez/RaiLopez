@@ -1,11 +1,11 @@
 #!/bin/bash
-OLD_HISTFILE="$HISTFILE"; export HISTFILE=/dev/null; trap 'export HISTFILE="$OLD_HISTFILE"' EXIT # Prevent history pollution
+unset HISTFILE; set +o history; # Prevent history file/memory pollution
 set +H # Disable '!' history expansion for preventing errors when using ! marks in strings or sed (alternative: "'!'")
 set -euo pipefail; trap 'debugger $LINENO "$BASH_COMMAND"' ERR # Debug Mode (Comment/Uncomment as needed)
 #export PS4='+ ${BASH_SOURCE}:${LINENO}: ${FUNCNAME[0]:+${FUNCNAME[0]}(): }' # Uncomment for detailed/alternative debugging with 'bash -x ./BUILDME.sh'
 
 # ⚙ CONFIGURATION
-declare -Ar INFO=( [NAME]="Lost Builder" [VERSION]="1.7.4" [CREATOR]="Rai López" [DESC]="Lost Project's Development Helper" )
+declare -Ar INFO=( [NAME]="Lost Builder" [VERSION]="1.7.5" [CREATOR]="Rai López" [DESC]="Lost Project's Development Helper" )
 declare -ar INCLUDE=( "Embed" "Menu" "Modules" "ScriptResources" "Smart" "Tool" "Utility" "LICENSE" ) # Note: Make sure the element doesn't remain orphaned in Core if you remove it from here!
 declare -ar SYNC=( "Modules" "Tool" "Utility" "ScriptResources" "Menu" "Embed" "Smart" ) # Pack folders for syncing...
 declare -Ar VARS=( [DEP]="ScriptDep" [VER]="ScriptVersion" [BLD]="ScriptBuild" [STG]="ScriptStage" [DSC]="ScriptDesc" [TAR]="ScriptTarget" ) # Script header variables (if "ScriptDep" is present in a .lua file, it's considered a pack!)
@@ -48,11 +48,13 @@ zipper() { # .ZIP packaging function: id ($1), target_path ($2)
 
 # 0. INTENT SELECTION
 echo -e "--- 🛈  ${T_C}2;4m${INFO[NAME]} v${INFO[VERSION]} by ${INFO[CREATOR]}${T_N} ---"
-echo -ne "--- ？ Publish to ${FORGE[BASE]}/${FORGE[USER]}/$CORE… when applies? (${T_S}Y${T_N}es/${T_S}N${T_N}o/${T_S}C${T_N}ancel): "; read -n 1 confirm;
+echo -ne "--- ？ Publish to ${FORGE[BASE]}/${FORGE[USER]}/$CORE… when applies? (${T_S}Y${T_N}es/${T_S}N${T_N}o/${T_S}S${T_N}hell/${T_S}C${T_N}ancel): "; read -n 1 confirm;
 case "$confirm" in
 	y|Y) PUBLISH=true; echo -e "\n--- 🎯 ${T_B}GOAL:${T_N} Build & ${T_S}Publish${T_N} ${T_D}(💡 'Ctrl+C' to abort)${T_N}"; sleep 1 ;;
+	s|S) echo -e "\n--- 💻 Entering Shell... ${T_D}(💡 Type 'exit' to return to Builder)${T_N}"
+		bash --login -i; exec bash "$0" ;;
 	c|C) echo -e "\n--- 🛑 CANCELLED: Exiting... "; sleep 0.5; exit 0 ;;
-	*) PUBLISH=false; echo -e "\n--- 🎯 ${T_B}GOAL:${T_N} Build & Kept Local" ;;
+	*)   PUBLISH=false; echo -e "\n--- 🎯 ${T_B}GOAL:${T_N} Build & Kept Local" ;;
 esac
 
 # 1. MIRROR RESET (Surgical to avoid deleting what we want to keep)
@@ -65,7 +67,7 @@ done
 
 # 2. PROCESSING (Fixed new ID based "Sacred Logic")
 echo -e "--- ✨ Distributing From Cleaned Mirror: $CORE_DEST"
-PACKS_TEMP=$(find "$CORE_DEST" -type f -name "*.lua" -exec grep -l "${VARS[DEP]}" {} + | xargs -I {} basename {} .lua | grep -v "^${CORE}$" | sort -u) # Generate the "Sacred ID List" looking for ScriptDep Key in *.lua
+PACKS_TEMP=$(find "$CORE_DEST" -type f -name "*.lua" -exec grep -l "${VARS[DEP]}" {} + | xargs -I {} basename {} .lua | grep -v "^${CORE}$" | sort -u) # Generate the "Sacred ID List" looking for ScriptDep key in *.lua
 PACKS="$PACKS_TEMP $CORE" # The final list (first the packs, and lastly, the Core)
 MONOREPO="${FORGE[MONO]:-${FORGE[USER]}}" # CUSTOM or USER (Same name as user by default)
 MONO_MSG=$(git log -1 --pretty=%B | tr -d '\r' | head -n 1)
@@ -104,13 +106,13 @@ for script_id in $PACKS; do
 		fi
 	fi
 
-	# --- 🔍 2.3. INJECT DEPENDENCIES & METADATA EXTRACTION (The "Smart Search" Logic)
+	# --- 🔍 2.2. INJECT DEPENDENCIES & METADATA EXTRACTION (The "Smart Search" Logic)
 	header="" v_name="" v_ver="0.0.0" v_tar="" v_stg="STABLE" v_dsc="" v_dsc_plain="" v_skip=false # Atomic reset
 	if [[ "$script_id" == "$CORE" ]]; then
 		MASTER_CORE="./Utility/ls_utilities.lua"
 		if [ -f "$MASTER_CORE" ]; then
 			header=$(head -n 25 "$MASTER_CORE" | tr -d '\r')
-			echo "    ℹ️ Core metadata sourced from: $MASTER_CORE"
+			echo "    ℹ️  Core metadata sourced from: $MASTER_CORE"
 		fi
 	else
 		while read -r main_file; do # We look for ALL namesake script files in TARGET_DIR
@@ -135,7 +137,7 @@ for script_id in $PACKS; do
 		done < <(find "$TARGET_DIR" -name "${script_id}.lua" -type f)
 	fi
 
-	# --- 🥢 2.4. UNIVERSAL METADATA COLLECTION & TREATMENT (Customhouse)
+	# --- 🥢 2.3. UNIVERSAL METADATA COLLECTION & TREATMENT (Customhouse)
 	v_name=$(echo "$script_id" | sed 's/ls_//g; s/_/ /g' | awk '{for(i=1;i<=NF;i++)sub(/./,toupper(substr($i,1,1)),$i)}1')
 	v_name="${v_name:-${script_id:-Unknown}}"; [[ "$script_id" == "$CORE" ]] && v_name="${v_name^^}"
 	if [[ -n "$header" ]]; then # Extract everything in one go so it's available afterwards
@@ -156,7 +158,7 @@ for script_id in $PACKS; do
 	v_dsc_plain=$(echo "$v_dsc" | sed 's/<[^>]*>//g') # Provide an HTML-free description
 	v_stg_warn="$v_ver"; [[ "$v_stg" != "STABLE" ]] && v_stg_warn="${v_ver}-${v_stg}" # E.g. 1.2.0-BETA
 
-	# --- 🚦 2.4a GLOBAL EXCLUSION FILTER
+	# --- 🚦 2.3a GLOBAL EXCLUSION FILTER
 	for skip in "${CATALOG_EXCLUDE[@]}"; do
 		if [[ "$v_stg" == "$skip" ]]; then
 			#if [[ "$script_id" == "$CORE" ]]; then
@@ -168,7 +170,7 @@ for script_id in $PACKS; do
 		fi
 	done
 
-	# --- 🖼️ 2.4b INTELLIGENT ICON LOGIC (Hybrid GitHub/HUGO Support)
+	# --- 🖼️ 2.3b INTELLIGENT ICON LOGIC (Hybrid GitHub/HUGO Support)
 	ASSETS_DIR="./docs/${script_id}/assets"
 	ICON_MAIN="${URL_RAW_MONO}/docs/assets/icon_unk.png"
 	ICON_DARK="${URL_RAW_MONO}/docs/assets/icon_unk_dark.png"
@@ -181,7 +183,7 @@ for script_id in $PACKS; do
 	fi
 	PICTURE_TAG="<picture><source media='(prefers-color-scheme: dark)' srcset='${ICON_DARK}'><source media='(prefers-color-scheme: light)' srcset='${ICON_LIGHT}'><img src='${ICON_MAIN}' width='48' alt='Icon' class='colorize'></picture>"
 
-	# --- 🔗 2.4c UNIVERSAL DOWNLOAD URL
+	# --- 🔗 2.3c UNIVERSAL DOWNLOAD URL
 	if git -C "$TARGET_DIR" remote get-url origin >/dev/null 2>&1; then # REMOTE SCENARIO: Check if there are version tags
 		if git -C "$TARGET_DIR" tag 2>/dev/null | grep -Eq '^v?[0-9]+\.[0-9]+\.[0-9]+'; then
 			v_zip_url="https://${FORGE[BASE]}/${FORGE[USER]}/$script_id/releases/latest/download/${script_id}.zip"
@@ -192,7 +194,7 @@ for script_id in $PACKS; do
 		v_zip_url="https://${FORGE[BASE]}/${FORGE[USER]}/${CORE}/releases/latest/download/${CORE}.zip"
 	fi
 
-	# --- 📄 2.5. HYBRID DOCS PROMOTION & FALLBACKS
+	# --- 📄 2.4. HYBRID DOCS PROMOTION & FALLBACKS
 	if [[ "$script_id" == "$CORE" ]]; then
 		SOURCE_DOCS="./docs/${CORE}"
 	else
@@ -208,7 +210,7 @@ for script_id in $PACKS; do
 	fi
 	[ ! -f "$TARGET_DIR/LICENSE" ] && [ -f "$CORE_DEST/LICENSE" ] && cp "$CORE_DEST/LICENSE" "$TARGET_DIR/" || true # Ensure that there's a LICENSE
 
-	# --- 🧹 2.6. FINALIZING + CLEANUP: Purge orphaned files in target (Scan standard Monorepo folders and delete any not present in the source Monorepo)
+	# --- 🧹 2.5. FINALIZING + CLEANUP: Purge orphaned files in target (Scan standard Monorepo folders and delete any not present in the source Monorepo)
 	for folder in "${SYNC[@]}"; do
 		[[ "$folder" == "docs" ]] && continue # Skip docs folder!
 		if [ -d "$TARGET_DIR/$folder" ]; then
@@ -222,7 +224,7 @@ for script_id in $PACKS; do
 	done
 	find "$TARGET_DIR" -type d -empty -not -path "*/.git*" -delete 2>/dev/null || true #echo -e "📦 Finalizing + Cleaning Package: $TARGET_DIR"
 
-	# --- 🖼️ 2.7. HEADER INJECTION (Per-Pack basis)
+	# --- 🖼️ 2.6. HEADER INJECTION (Per-Pack basis)
 	TARGET_FILE="$TARGET_DIR/docs/README.md" # Note: Already renamed index to README (2.5)
 	H_START='<!-- HEADER_START -->'; H_END='<!-- HEADER_END -->'
 
@@ -253,7 +255,7 @@ for script_id in $PACKS; do
 		echo "    ✅ Header injected & Cleaned: $script_id"
 	fi
 
-	# --- 🌟 2.8 STARRED/FEATURED CARD GENERATOR
+	# --- 🌟 2.7 STARRED/FEATURED CARD GENERATOR
 	if [[ "$v_skip" == false ]] && [[ -n "$STAR_RAW" && ",$STAR_RAW," == *",$script_id,"* ]]; then
 		ST_GIT="https://github.com/${FORGE[USER]}/${script_id}"
 		
@@ -275,7 +277,7 @@ for script_id in $PACKS; do
 		echo "$ST_CARD" >> "$STAR_TBL_TMP"
 	fi
 
-	if [[ "$script_id" == "$CORE" && -s "$STAR_TBL_TMP" ]]; then # Single Injection (Only when the loop reaches the Core)
+	if [[ "$script_id" == "$CORE" && -s "$STAR_TBL_TMP" ]]; then # Single injection (Only when the loop reaches the Core)
 		CORE_READ="$TARGET_DIR/docs/README.md"
 
 		if [[ -n "${S_START:-}" && -n "${S_END:-}" ]] && grep -q "$S_START" "$CORE_READ"; then # Security check to avoid sed error
@@ -289,11 +291,11 @@ for script_id in $PACKS; do
 		fi
 	fi
 
-	# --- 🎁 2.9. SCRIPT ZIP GENERATION (Optional & Local)
+	# --- 🎁 2.8. SCRIPT ZIP GENERATION (Optional & Local)
 	zipper "$script_id" "$TARGET_DIR"
 	((++REPORT[TOT]))
 
-	# --- 🚀 2.10. GIT SYNC & CATALOG DATA
+	# --- 🚀 2.9. GIT SYNC & CATALOG DATA
 	if [ -d "$TARGET_DIR/.git" ] || [[ "$script_id" == "$CORE" ]]; then
 		[[ -d "$TARGET_DIR/.git" ]] && cd "$TARGET_DIR" || true
 
@@ -361,7 +363,7 @@ for script_id in $PACKS; do
 done
 
 # --- 📃 3. CATALOG GENERATION
-echo "--- 📝 Updating Monorepo's Catalog ---"
+echo "--- 📝 Updating Monorepo's Catalog..."
 CAT_TMP_TBL=$(mktemp); CAT_START='<!-- CATALOG_START -->'; CAT_END='<!-- CATALOG_END -->'
 
 # 3a. Table Header (Remote icons so they're always visible)
@@ -405,7 +407,7 @@ fi
 if grep -q "$CAT_START" "$MONO_READ" && grep -q "$CAT_END" "$MONO_READ"; then # Both markers are present
 	sed -i "\|$CAT_START|,\|$CAT_END|{ \|$CAT_START|b; \|$CAT_END|b; d; }" "$MONO_READ" # First, we delete ONLY what is strictly BETWEEN the markers
 	sed -i "\|$CAT_START|r $CAT_TMP_TBL" "$MONO_READ" # We insert the content immediately after the start marker
-	echo "--- ✅ Catalog Injected Between Markers ---"
+	echo "--- ✅ Catalog Injected Between Markers"
 else
 	echo -e "--- ⚠️  ${T_R} Warning:${T_N} Markers missing in README (appending at end to prevent data loss)"; ((++REPORT[ISS]))  # Nothing gets deleted, just added at the end
 	{
@@ -417,14 +419,37 @@ fi
 rm -f "$CAT_TMP_TBL" "$CATALOG_DATA"
 [ -f "$STAR_TBL_TMP" ] && rm -f "$STAR_TBL_TMP"
 
-# 4. ENDING: RESTART/SHELL/EXIT?
+# 4. ENDING: RESTART/SHELL/UPDATE/EXIT?
 echo -e "--- 🏁 ${T_B}DONE!${T_N} (In: $(printf '%01d:%02d' $((SECONDS/60)) $((SECONDS%60))) | Total: ${REPORT[TOT]} | Local: ${REPORT[LOC]} | Public: ${REPORT[PUB]} | $([[ ${REPORT[ISS]} -gt 0 ]] && echo -ne "${T_R}" || echo -ne "${T_N}")Issues: ${REPORT[ISS]}${T_N})"
-echo -ne "--- ？ ${T_S}R${T_N}estart? (${T_S}Y${T_N}es/${T_S}S${T_N}hell/${T_S}Any${T_N} to exit): "; read -n 1 action; echo ""
+echo -ne "--- ？ ${T_S}R${T_N}estart? (${T_S}Y${T_N}es/${T_S}S${T_N}hell/${T_S}U${T_N}pdateMonorepo/${T_S}Any${T_N}ToExit): "; read -n 1 action; echo ""
+
 if [[ "$action" =~ ^[yYrR]$ ]]; then
 	echo -e "--- 🔁 Restarting... \n"; sleep 0.5; exec bash "$0"
 elif [[ "$action" =~ ^[sS]$ ]]; then
 	echo -e "--- 💻 Entering Shell... ${T_D}(💡 Type 'exit' to return to Builder)${T_N}"
-	export HISTFILE="$OLD_HISTFILE"; bash --login -i; export HISTFILE=/dev/null; exec bash "$0"
+	bash --login -i; exec bash "$0"
+elif [[ "$action" =~ ^[uU]$ ]]; then
+	echo -e "--- 🌎 Updating Monorepo..."
+	git add . #git add "$MONO_READ" "$DOCSDIR"
+	
+if ! git diff --cached --quiet; then # 📂 Mostramos qué se va a subir (Modo resumen)
+		echo -e "--- 📦 ${T_Y}Staged changes to be committed:${T_N}"
+		git status --short --branch #| sed 's/^/    /'
+		echo -ne "--- 💬 ${T_S}Commit Message${T_N} ${T_D}(💡 Edit or leave EMPTY to cancel)${T_N}: "
+		read -e -i "Catalog Sync (@$MONO_HASH)" user_msg
+		
+		if [[ -n "$user_msg" ]]; then
+			git commit -m "$user_msg"
+			git push -q origin main
+			echo -e "--- ✅ Monorepo updated! Returning... \n"; sleep 1; exec bash "$0"
+		else
+			echo -e "--- 🛑 Cancelled. Unstaging files... \n"
+			git reset . > /dev/null # El punto asegura que solo reseteamos el directorio actual
+			sleep 1; exec bash "$0"
+		fi
+	else
+		echo -e "--- 🧼 No changes to update in Monorepo. Returning... \n"; sleep 1; exec bash "$0"
+	fi
 else
 	echo -e "--- ❎ Exiting... "; sleep 0.5; exit 0
 fi

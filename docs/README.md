@@ -1,4 +1,4 @@
-<!-- mIxEd style head (quite simple with modes and full width in GitHub) [![h-icon]](#!) -->
+<!-- mIxEd style head (quite simple with modes and full width in GitHub) [![h-icon]](#!) --> 
 <table id="top" width="100%" border="0"><tr><td align="center" valign="middle" width="96">
 <picture>
 	<source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/RaiLopez/RaiLopez/refs/heads/main/docs/assets/icon_dark.png">
