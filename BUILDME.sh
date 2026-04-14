@@ -1,5 +1,5 @@
 #!/bin/bash
-unset HISTFILE; set +o history; # Prevent history file/memory pollution
+unset HISTFILE; set +o history; # Prevent history file/memory? pollution
 set +H # Disable '!' history expansion for preventing errors when using ! marks in strings or sed (alternative: "'!'")
 set -euo pipefail; trap 'debugger $LINENO "$BASH_COMMAND"' ERR # Debug Mode (Comment/Uncomment as needed)
 #export PS4='+ ${BASH_SOURCE}:${LINENO}: ${FUNCNAME[0]:+${FUNCNAME[0]}(): }' # Uncomment for detailed/alternative debugging with 'bash -x ./BUILDME.sh'
@@ -11,6 +11,8 @@ declare -ar SYNC=( "Modules" "Tool" "Utility" "ScriptResources" "Menu" "Embed" "
 declare -Ar VARS=( [DEP]="ScriptDep" [VER]="ScriptVersion" [BLD]="ScriptBuild" [STG]="ScriptStage" [DSC]="ScriptDesc" [TAR]="ScriptTarget" ) # Script header variables (if "ScriptDep" is present in a .lua file, it's considered a pack!)
 declare -Ar VAREXS=( [S]='s/.*=[[:space:]]*\(['"'"'"]\)\(.*\)\1\( --.*\)*$/\2/p' [A]='s/[^=]*=[[:space:]]*//; s/[^"'\'']*["'\'']\([^"'\'']*\)["'\'']/\1 /g' ) # Script header variable extractors
 declare -Ar FORGE=( [BASE]="github.com" [BRAW]="raw.githubusercontent.com" [USER]="RaiLopez" [PREF]="git@github-railopez" ) # URL, contentUrl, username, remotePrefix (SSH Alias), [MONO]="custom-repo" (optional, overrides USER)
+declare -r  MONOREPO="${FORGE[MONO]:-${FORGE[USER]}}" # CUSTOM or USER (Same name as user by default)
+declare -r  MONO_HASH=$(git rev-parse --short HEAD)
 declare -r  CORE="ls"
 declare -r  CORE_DEST="../$CORE"
 declare -r  CORE_INDEX="./docs/ls/index.md"
@@ -50,13 +52,14 @@ zipper() { # .ZIP packaging function: id ($1), target_path ($2)
 echo -e "--- 🛈  ${T_C}2;4m${INFO[NAME]} v${INFO[VERSION]} by ${INFO[CREATOR]}${T_N} ---"
 echo -ne "--- ？ Publish to ${FORGE[BASE]}/${FORGE[USER]}/$CORE… when applies? (${T_S}Y${T_N}es/${T_S}N${T_N}o/${T_S}S${T_N}hell/${T_S}C${T_N}ancel): "; read -n 1 confirm;
 case "$confirm" in
-	y|Y) PUBLISH=true; echo -e "\n--- 🎯 ${T_B}GOAL:${T_N} Build & ${T_S}Publish${T_N} ${T_D}(💡 'Ctrl+C' to abort)${T_N}"; sleep 1 ;;
+	y|Y) PUBLISH=true; echo -e "\n--- 🎯 ${T_B}GOAL:${T_N} Build & ${T_S}Publish${T_N} ${T_D}(💡 'Ctrl+C' to cancel at any time)${T_N}"; sleep 1 ;;
 	s|S) echo -e "\n--- 💻 Entering Shell... ${T_D}(💡 Type 'exit' to return to Builder)${T_N}"
 		bash --login -i; exec bash "$0" ;;
 	c|C) echo -e "\n--- 🛑 CANCELLED: Exiting... "; sleep 0.5; exit 0 ;;
-	*)   PUBLISH=false; echo -e "\n--- 🎯 ${T_B}GOAL:${T_N} Build & Kept Local" ;;
+	*)   PUBLISH=false; echo -e "\n--- 🎯 ${T_B}GOAL:${T_N} Build & Kept Local ${T_D}(💡 'Ctrl+C' to cancel at any time)${T_N}" ;;
 esac
 
+: << 'DEBUG'
 # 1. MIRROR RESET (Surgical to avoid deleting what we want to keep)
 mkdir -p "$CORE_DEST"
 for item in "${INCLUDE[@]}"; do
@@ -67,12 +70,11 @@ done
 
 # 2. PROCESSING (Fixed new ID based "Sacred Logic")
 echo -e "--- ✨ Distributing From Cleaned Mirror: $CORE_DEST"
+MONO_HASH=$(git rev-parse --short HEAD)
+MONO_MSG=$(git log -1 --pretty=%B | tr -d '\r' | head -n 1)
+MONO_READ="./docs/README.md"
 PACKS_TEMP=$(find "$CORE_DEST" -type f -name "*.lua" -exec grep -l "${VARS[DEP]}" {} + | xargs -I {} basename {} .lua | grep -v "^${CORE}$" | sort -u) # Generate the "Sacred ID List" looking for ScriptDep key in *.lua
 PACKS="$PACKS_TEMP $CORE" # The final list (first the packs, and lastly, the Core)
-MONOREPO="${FORGE[MONO]:-${FORGE[USER]}}" # CUSTOM or USER (Same name as user by default)
-MONO_MSG=$(git log -1 --pretty=%B | tr -d '\r' | head -n 1)
-MONO_HASH=$(git rev-parse --short HEAD)
-MONO_READ="./docs/README.md"
 URL_BASE="https://${FORGE[BASE]}/${FORGE[USER]}"
 URL_RAW="https://${FORGE[BRAW]}/${FORGE[USER]}"
 URL_RAW_CORE="${URL_RAW}/${CORE}/main/ScriptResources/${CORE}"
@@ -418,7 +420,7 @@ fi
 # 3d. Final Cleanup
 rm -f "$CAT_TMP_TBL" "$CATALOG_DATA"
 [ -f "$STAR_TBL_TMP" ] && rm -f "$STAR_TBL_TMP"
-
+DEBUG
 # 4. ENDING: RESTART/SHELL/UPDATE/EXIT?
 echo -e "--- 🏁 ${T_B}DONE!${T_N} (In: $(printf '%01d:%02d' $((SECONDS/60)) $((SECONDS%60))) | Total: ${REPORT[TOT]} | Local: ${REPORT[LOC]} | Public: ${REPORT[PUB]} | $([[ ${REPORT[ISS]} -gt 0 ]] && echo -ne "${T_R}" || echo -ne "${T_N}")Issues: ${REPORT[ISS]}${T_N})"
 echo -ne "--- ？ ${T_S}R${T_N}estart? (${T_S}Y${T_N}es/${T_S}S${T_N}hell/${T_S}U${T_N}pdateMonorepo/${T_S}Any${T_N}ToExit): "; read -n 1 action; echo ""
@@ -430,21 +432,25 @@ elif [[ "$action" =~ ^[sS]$ ]]; then
 	bash --login -i; exec bash "$0"
 elif [[ "$action" =~ ^[uU]$ ]]; then
 	echo -e "--- 🌎 Updating Monorepo..."
-	git add . #git add "$MONO_READ" "$DOCSDIR"
-	
-if ! git diff --cached --quiet; then # 📂 Mostramos qué se va a subir (Modo resumen)
+	STASH_STAGE=$(git write-tree) # 💾 Snapshot del stage
+	git add .  #git add "$MONO_READ" "$DOCSDIR" (TBD: Stage all o just partially?)
+
+	if ! git diff --cached --quiet; then # Show what will be uploaded (Summary mode)
 		echo -e "--- 📦 ${T_Y}Staged changes to be committed:${T_N}"
-		git status --short --branch #| sed 's/^/    /'
-		echo -ne "--- 💬 ${T_S}Commit Message${T_N} ${T_D}(💡 Edit or leave EMPTY to cancel)${T_N}: "
-		read -e -i "Catalog Sync (@$MONO_HASH)" user_msg
+		git -c color.status=always status --short --branch | sed 's/^/    /' # The short status with branch and indentation
+		git -c color.diff=always diff "$STASH_STAGE" --stat | tail -n 1 | sed 's/^/    🛈 /' # Summary of insertions/deletions by using diff --stat against the snapshot
+
+		echo -e "--- 💬 ${T_S}Commit Message${T_N} ${T_D}(💡 'Ctrl+U'/EMPTY to cancel)${T_N}:"
+		read -e -i "    Update: Monorepo and catalog (@$MONO_HASH)" user_msg
+		user_msg_trimmed=$(echo "$user_msg" | xargs) # Safety Cleaning
 		
-		if [[ -n "$user_msg" ]]; then
-			git commit -m "$user_msg"
+		if [[ -n "$user_msg_trimmed" ]]; then
+			git commit -m "$user_msg_trimmed"
 			git push -q origin main
 			echo -e "--- ✅ Monorepo updated! Returning... \n"; sleep 1; exec bash "$0"
 		else
-			echo -e "--- 🛑 Cancelled. Unstaging files... \n"
-			git reset . > /dev/null # El punto asegura que solo reseteamos el directorio actual
+			echo -e "--- 🛑 Cancelled. Restoring previous stage... \n"
+			git read-tree "$STASH_STAGE"
 			sleep 1; exec bash "$0"
 		fi
 	else
