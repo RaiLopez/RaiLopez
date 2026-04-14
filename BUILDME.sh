@@ -442,7 +442,7 @@ elif [[ "$action" =~ ^[uU]$ ]]; then
 
 		echo -e "--- 💬 ${T_S}Commit Message${T_N} ${T_D}(💡 'Ctrl+U'/EMPTY to cancel)${T_N}:"
 		read -e -i "    Update: Monorepo and catalog (@$MONO_HASH)" user_msg
-		user_msg_trimmed=$(echo "$user_msg" | xargs) # Safety Cleaning
+		user_msg_trimmed=$(echo "$user_msg" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//') # Limpieza de seguridad: Limpia espacios/tabs al principio y al final de una tacada
 		
 		if [[ -n "$user_msg_trimmed" ]]; then
 			git commit -m "$user_msg_trimmed"
